@@ -31,7 +31,7 @@ Here is a sample asp.net mvc action which uses the parser
             	var context = new DocumentsEntities(); //Entity framework context
                 IQueriable<Document> documents = context.Documents.where(d => d.IsActive);
 
-            	var parser = new DataTablesParser<User>(Request, documents);
+            	var parser = new DataTablesParser<Document>(Request, documents);
             	return Json(parser.Parse());
              }
 
