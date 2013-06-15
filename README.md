@@ -46,4 +46,5 @@ optimized or removed altogether. One of the biggest things this has forced me to
 
 Contact 
 ========================
-My twitter: [garvincasimir](https://twitter.com/garvincasimir)
+Twitter: [garvincasimir](https://twitter.com/garvincasimir)
+Google+: [garvincasimir](https://plus.google.com/100137710586918559017)
