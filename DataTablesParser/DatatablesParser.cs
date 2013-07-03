@@ -331,26 +331,28 @@ namespace DataTablesParser
 
                     if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(Nullable<DateTime>))
                     {
+
+                        var date = Expression.Convert(propExp, typeof(Nullable<DateTime>));
                         //Only way to get a number for date part
                         var datePart = typeof(SqlFunctions).GetMethod("DatePart", new Type[] { typeof(string), typeof(Nullable<DateTime>) });
                         //get day of month and year which are already strings
                         var dateName = typeof(SqlFunctions).GetMethod("DateName", new Type[] { typeof(string), typeof(Nullable<DateTime>) });
                         //Call to get month part
-                        var month = Expression.Call(datePart,Expression.Constant("m"),propExp);
+                        var month = Expression.Call(datePart, Expression.Constant("m"), date);
                         //Convert to double
                         var toDouble = Expression.Convert(month, typeof(Nullable<double>));
                         //convert to string
                         var monthPartToString = typeof(SqlFunctions).GetMethod("StringConvert", new Type[] { typeof(Nullable<double>) });
                         //now all three numerical parts of date as string
-                        var monthPart = Expression.Call( monthPartToString, toDouble);
-                        var dayPart = Expression.Call( dateName, Expression.Constant("d"), propExp);
-                        var yearPart = Expression.Call(dateName, Expression.Constant("yy"), propExp);
-                        var conCat4 = typeof(string).GetMethod("Concat", new Type[] {typeof(string), typeof(string),typeof(string),typeof(string) });
+                        var monthPart = Expression.Call(monthPartToString, toDouble);
+                        var dayPart = Expression.Call(dateName, Expression.Constant("d"), date);
+                        var yearPart = Expression.Call(dateName, Expression.Constant("yy"), date);
+                        var conCat4 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
                         var conCat2 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) });
                         var delim = Expression.Constant("/");
                         stringProp = Expression.Call(conCat2,
                                                         Expression.Call(conCat4, monthPart, delim, dayPart, delim), yearPart);
-                        
+
                     }
 
                     if (prop.PropertyType == typeof(string))
