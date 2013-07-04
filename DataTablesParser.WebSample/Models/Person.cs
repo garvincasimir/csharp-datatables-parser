@@ -18,5 +18,14 @@ namespace DataTablesParser.WebSample.Models
         public decimal Weight { get; set; }
         public decimal Height { get; set; }
         public int Children { get; set; }
+
+        [NotMapped]
+        public string BirthDateFormatted
+        {
+            get
+            {
+                return string.Format("{0:M/d/yyyy}", BirthDate);
+            }
+        }
     }
 }
