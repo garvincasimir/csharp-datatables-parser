@@ -35,7 +35,14 @@ Here is a sample asp.net mvc action which uses the parser
             	return Json(parser.Parse());
              }
 
+
+Installation
+========================
  
+ The easiest way to get this library into your project is through NuGet. You can search using the NuGet package manager, or you
+ can enter the following command in your package manager console:
+ 
+            PM> Install-Package DataTablesParser              
 
 Contributions, comments, changes, issues
 ========================
