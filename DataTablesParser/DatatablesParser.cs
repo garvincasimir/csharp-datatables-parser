@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Web;
 using System.Data.Objects.SqlClient;
 using System.Threading.Tasks;
+using System.Data.Objects;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 
 namespace DataTablesParser
 {
@@ -13,7 +16,7 @@ namespace DataTablesParser
     /// Parses the request values from a query from the DataTables jQuery pluggin
     /// </summary>
     /// <typeparam name="T">List data type</typeparam>
-    public class DataTablesParser<T>
+    public class DataTablesParser<T> where T : class
     {
         /*
          * int: iDisplayStart - Display start point
@@ -105,15 +108,20 @@ namespace DataTablesParser
 
             };
 
-            if (_queriable is System.Data.Objects.ObjectQuery<T>) //linq to entities (might be better to test provider property)
+            //Test ofr linq to entities
+            //Anyone know of a better way to do this test??
+            if (_queriable is ObjectQuery<T> || _queriable is DbQuery<T> ) 
             {
 
                 // setup the data with individual property search, all fields search,
                 // paging, and property list selection
-                list.aaData = _queriable.Where(ApplyGenericSearch)
+                var resultQuery = _queriable.Where(ApplyGenericSearch)
                             .Skip(skip)
-                            .Take(take)
-                            .ToList();
+                            .Take(take);
+
+                list.aaData = resultQuery.ToList();
+
+                list.SetQuery(resultQuery.ToString());
 
                 // total records that are displayed after filter
                 list.iTotalDisplayRecords = _queriable.Count(ApplyGenericSearch);
@@ -123,14 +131,21 @@ namespace DataTablesParser
 
                 // setup the data with individual property search, all fields search,
                 // paging, and property list selection
-                list.aaData = _queriable.Where(GenericFind)
+                var resultQuery = _queriable.Where(GenericFind)
                             .Skip(skip)
-                            .Take(take)
+                            .Take(take);
+
+                list.aaData = resultQuery
                             .ToList();
+
+                list.SetQuery(resultQuery.ToString());
 
                 // total records that are displayed after filter
                 list.iTotalDisplayRecords = _queriable.Count(GenericFind);
             }
+
+   
+
             return list;
         }
 
@@ -384,8 +399,16 @@ namespace DataTablesParser
 
     public class FormatedList<T>
     {
-        public FormatedList()
+        private string _query;
+
+        internal void SetQuery(string query)
         {
+            _query = query;
+        }
+
+        public string GetQuery()
+        {
+            return _query;
         }
 
         public int sEcho { get; set; }

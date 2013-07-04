@@ -1,0 +1,31 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+<table class="display" id="PeopleListTable"></table>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            var peopleList = $('#PeopleListTable').dataTable({
+                bServerSide: true,
+                bProcessing: true,
+                sServerMethod: "POST",
+                sAjaxSource: "@Url.Action("All", "Person")",
+                aoColumns: [
+                    { mData: "FirstName", sTitle: "First Name"},
+                    { mData: "LastName", sTitle: "Last Name" },
+                    { mData: "BirthDate", sTitle: "Birth Date" },
+                    { mData: "Weight", sTitle: "Weight" },
+                    { mData: "Height", sTitle: "Height" },
+                    { mData: "Children", sTitle: "Children" }
+
+                ]
+            });
+        });
+    </script>
+
+
+}
