@@ -25,7 +25,7 @@
           <dependency id="EntityFramework" version="5.0.0" />
         </group>
     </dependencies>
-    <tags>C# Datatables.net javascript parser json</tags>
+    <tags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc</tags>
   </metadata>
   <files>
     <file src="lib/DataTablesParser.dll" target="lib" />
