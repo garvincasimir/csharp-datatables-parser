@@ -51,6 +51,12 @@ I welcome any suggestions for improvement, contributions, questions or issues wi
 It is the result of continuous changes to deal with issues encountered while using it so I am sure there are some things that can be 
 optimized or removed altogether. One of the biggest things this has forced me to deal with is the differences between LINQ to entites and LINQ to Objects.
 
+* Please do not include multiple unrelated fixes in a single pull request
+* The diff for your pull request should only show changes related to your fix/addition (Some editors create unnecessary changes).
+* When possible include tests that cover the features/changes in your pull request
+* Before you submit make sure the existing tests pass with your changes
+* Linq to Entities tests which include search parameters will fail because I use Sql Server CE (Will fix that).
+
 Contact 
 ========================
 Twitter: [garvincasimir](https://twitter.com/garvincasimir)
