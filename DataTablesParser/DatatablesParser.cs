@@ -34,7 +34,9 @@ namespace DataTablesParser
         * string: sEcho - Information for DataTables to use for rendering
          */
 
+        private const string INDIVIDUAL_DATA_KEY_PREFIX = "mDataProp_";
         private const string INDIVIDUAL_SEARCH_KEY_PREFIX = "sSearch_";
+        private const string INDIVIDUAL_SEARCHABLE_KEY_PREFIX = "bSearchable_";
         private const string INDIVIDUAL_SORT_KEY_PREFIX = "iSortCol_";
         private const string INDIVIDUAL_SORT_DIRECTION_KEY_PREFIX = "sSortDir_";
         private const string DISPLAY_START = "iDisplayStart";
@@ -315,9 +317,32 @@ namespace DataTablesParser
 
                 List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
 
+                var dataNumbers = new Dictionary<int, string>();
+
+                foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_DATA_KEY_PREFIX)))
+                {
+                    // parse the property number
+                    var property = -1;
+
+                    var propertyString = key.Replace(INDIVIDUAL_DATA_KEY_PREFIX, string.Empty);
+
+                    if ((!int.TryParse(propertyString, out property))
+                        || property >= _properties.Length || string.IsNullOrEmpty(key))
+                        break; // ignore if the option is invalid
+
+                    dataNumbers.Add(property, _httpRequest[key]);
+                }
+
                 foreach (var prop in _properties)
                 {
-                    if(!prop.CanWrite){ continue; }
+                    var searchable = INDIVIDUAL_SEARCHABLE_KEY_PREFIX
+                                     + dataNumbers.Where(d => d.Value == prop.Name).Select(d => d.Key).FirstOrDefault();
+
+                    bool isSearchable;
+
+                    bool.TryParse(_httpRequest[searchable], out isSearchable);
+
+                    if (!prop.CanWrite || !isSearchable) { continue; }
 
                     Expression stringProp = null;
 
