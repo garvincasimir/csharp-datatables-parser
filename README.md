@@ -7,6 +7,8 @@ The version in this repo features many changes and improvements from the origina
 The most significant change is the shift to returning an array of objects instead of a two dimensional array. 
 This allows for binding to the actual object property names instead of array indexes. It also supports string filtering on dates and numberic fields in linq to entities without retrieving the entire list. The project was created in visual studio 2012 and requires .net framework 4.5 to be installed.
 
+This project is provided under the MIT License.
+
 jQuery Datatables
 ========================
 
