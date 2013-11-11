@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Data.Objects;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Text.RegularExpressions;
 
 namespace DataTablesParser
 {
@@ -37,6 +38,7 @@ namespace DataTablesParser
         private const string INDIVIDUAL_DATA_KEY_PREFIX = "mDataProp_";
         private const string INDIVIDUAL_SEARCH_KEY_PREFIX = "sSearch_";
         private const string INDIVIDUAL_SEARCHABLE_KEY_PREFIX = "bSearchable_";
+        private const string INDIVIDUAL_SORTABLE_KEY_PREFIX = "bSortable_";
         private const string INDIVIDUAL_SORT_KEY_PREFIX = "iSortCol_";
         private const string INDIVIDUAL_SORT_DIRECTION_KEY_PREFIX = "sSortDir_";
         private const string DISPLAY_START = "iDisplayStart";
@@ -48,6 +50,22 @@ namespace DataTablesParser
         private readonly HttpRequestBase _httpRequest;
         private readonly Type _type;
         private  PropertyInfo[] _properties;
+        private IDictionary<int, PropertyMapping> _propertyMap ;
+
+        //TODO: We may be able to handle other numeric property types if they are translatable
+        private Type[] _translatable = 
+        { 
+            typeof(string), 
+            typeof(int), 
+            typeof(Nullable<int>), 
+            typeof(decimal), 
+            typeof(Nullable<decimal>),
+            typeof(float),
+            typeof(Nullable<float>),
+            typeof(DateTime), 
+            typeof(Nullable<DateTime>) 
+            
+        };
 
 		public DataTablesParser(HttpRequestBase httpRequest, IQueryable<T> queriable)
         {
@@ -55,6 +73,28 @@ namespace DataTablesParser
             _httpRequest = httpRequest;
             _type = typeof(T);
             _properties = _type.GetProperties();
+
+            //user regex instead of throwing exception or using tryparse
+             var integerTest = new Regex(@"^\d+$");
+
+            //Is this readable? Well if you can read all this expression stuff then this is nothing~!
+            //This associates class properties with relevant datatable configuration options
+             _propertyMap = (from key in _httpRequest.Params.AllKeys.Where(k => k.StartsWith(INDIVIDUAL_DATA_KEY_PREFIX))
+                             join prop in _properties on _httpRequest[key] equals prop.Name
+                             let extractIndex = key.Replace(INDIVIDUAL_DATA_KEY_PREFIX, string.Empty).Trim()
+                             let searchable = _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex].Trim() == "true"
+                             let sortable = _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex].Trim() == "true" 
+                             where integerTest.IsMatch(extractIndex)
+                             select new
+                             {
+                                 index = int.Parse(extractIndex),
+                                 map = new PropertyMapping
+                                 {
+                                     Property = prop,
+                                     Searchable = searchable,
+                                     Sortable = sortable
+                                 }
+                             }).Distinct().ToDictionary(k => k.index, v => v.map);
         }
 
 		public DataTablesParser(HttpRequest httpRequest, IQueryable<T> queriable)
@@ -91,7 +131,7 @@ namespace DataTablesParser
             //This needs to be an expression or else it won't limit results
             Func<T, bool> GenericFind = delegate(T item)
             {
-                bool bFound = false;
+                bool found = false;
                 var sSearch = _httpRequest["sSearch"]; 
 
                 if(string.IsNullOrWhiteSpace(sSearch))
@@ -99,14 +139,15 @@ namespace DataTablesParser
                     return true;
                 }
     
-                foreach (PropertyInfo property in _properties)
+                foreach (var map in _propertyMap)
                 {
-                    if (Convert.ToString(property.GetValue(item, null)).ToLower().Contains((sSearch).ToLower()))
+
+                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((sSearch).ToLower()))
                     {
-                        bFound = true;
+                        found = true;
                     }
                 }
-                return bFound;
+                return found;
 
             };
 
@@ -163,65 +204,60 @@ namespace DataTablesParser
 
         private void ApplySort()
         {
-            var thenBy = false;
+            var sorted = false;
             var paramExpr = Expression.Parameter(typeof(T), "val");
-            // enumerate the keys for any sortations
+
+            // Enumerate the keys sort keys in the order we received them
             foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_SORT_KEY_PREFIX)))
             {
                 // column number to sort (same as the array)
                 int sortcolumn = int.Parse(_httpRequest[key]);
 
-                // ignore malformatted values
-                if (sortcolumn < 0 || sortcolumn >= _properties.Length)
-                    break;
+                // ignore invalid columns 
+                if (!_propertyMap.ContainsKey(sortcolumn) || !_propertyMap[sortcolumn].Sortable)
+                    continue;
 
                 // get the direction of the sort
                 string sortdir = _httpRequest[INDIVIDUAL_SORT_DIRECTION_KEY_PREFIX + key.Replace(INDIVIDUAL_SORT_KEY_PREFIX, string.Empty)];
 
-                // form the sortation per property via a property expression
-                
-                //var expression = Expression.Convert(Expression.Property(paramExpr, _properties[sortcolumn].Name),typeof(object));
-                 var expression1 = Expression.Property(paramExpr, _properties[sortcolumn].Name);
-                var propType =  _properties[sortcolumn].PropertyType;
-                var delegateType = Expression.GetFuncType(typeof(T), propType);
-                var propertyExpr = Expression.Lambda(delegateType, expression1, paramExpr);
-                //var propertyExpr = Expression.Lambda<Func<T, dynamic>>(Expression.Property(paramExpr, _properties[sortcolumn].Name), paramExpr);
-               
+          
+                 var sortProperty = _propertyMap[sortcolumn].Property;
+                 var expression1 = Expression.Property(paramExpr, sortProperty);
+                 var propType = sortProperty.PropertyType;
+                 var delegateType = Expression.GetFuncType(typeof(T), propType);
+                 var propertyExpr = Expression.Lambda(delegateType, expression1, paramExpr);
                
                 // apply the sort (default is ascending if not specified)
-                if (string.IsNullOrEmpty(sortdir) || sortdir.Equals(ASCENDING_SORT, StringComparison.OrdinalIgnoreCase))
-                    //_queriable = _queriable.OrderBy<T, dynamic>(propertyExpr);
-                    
-        _queriable = typeof(Queryable).GetMethods().Single(
-            method => method.Name == (thenBy ? "ThenBy" : "OrderBy")
-                        && method.IsGenericMethodDefinition
-                        && method.GetGenericArguments().Length == 2
-                        && method.GetParameters().Length == 2)
-                .MakeGenericMethod(typeof(T), propType)
-                .Invoke(null, new object[] { _queriable, propertyExpr }) as IOrderedQueryable<T>;
-    
-                else
-                    //_queriable = _queriable.OrderByDescending<T, dynamic>(propertyExpr);
+                 string methodName;
+                 if (string.IsNullOrEmpty(sortdir) || sortdir.Equals(ASCENDING_SORT, StringComparison.OrdinalIgnoreCase))
+                 {
+                     methodName = sorted ? "ThenBy" : "OrderBy";
+                 }
+                 else
+                 {
+                     methodName = sorted ? "ThenByDescending" : "OrderByDescending";
+                 }
 
                 _queriable = typeof(Queryable).GetMethods().Single(
-        method => method.Name == (thenBy ? "ThenByDescending" : "OrderByDescending")
-                && method.IsGenericMethodDefinition
-                && method.GetGenericArguments().Length == 2
-                && method.GetParameters().Length == 2)
-        .MakeGenericMethod(typeof(T), propType)
-        .Invoke(null, new object[] { _queriable, propertyExpr }) as IOrderedQueryable<T>;
+                    method => method.Name == methodName
+                                && method.IsGenericMethodDefinition
+                                && method.GetGenericArguments().Length == 2
+                                && method.GetParameters().Length == 2)
+                        .MakeGenericMethod(typeof(T), propType)
+                        .Invoke(null, new object[] { _queriable, propertyExpr }) as IOrderedQueryable<T>;
 
-                thenBy = true;
+                     sorted = true;
             }
 
 			//Linq to entities needs a sort to implement skip
-            if (!thenBy && !(_queriable is IOrderedQueryable<T>))
+            //Not sure if we care about the queriables that come in sorted? IOrderedQueryable does not seem to be a reliable test
+            if (!sorted)
             {
                 var firstProp = Expression.Property(paramExpr, _properties[0].Name);
                 var propType = _properties[0].PropertyType;
                 var delegateType = Expression.GetFuncType(typeof(T), propType);
                 var propertyExpr = Expression.Lambda(delegateType, firstProp, paramExpr);
-
+         
                 _queriable = typeof(Queryable).GetMethods().Single(
              method => method.Name == "OrderBy"
                          && method.IsGenericMethodDefinition
@@ -232,31 +268,6 @@ namespace DataTablesParser
 
             }
 
-
-
-
-
-        }
-
-
-
-        /// <summary>
-        /// Expression that returns a list of string values, which correspond to the values
-        /// of each property in the list type
-        /// </summary>
-        /// <remarks>This implementation does not allow indexers</remarks>
-        private Expression<Func<T, List<string>>> SelectProperties
-        {
-            get
-            {
-                // 
-                return value => _properties.Select
-                                            (
-                    // empty string is the default property value
-                                                prop => (prop.GetValue(value, new object[0]) ?? string.Empty).ToString()
-                                            )
-                                           .ToList();
-            }
         }
 
         /// <summary>
@@ -314,62 +325,44 @@ namespace DataTablesParser
                 // invariant expressions
                 var searchExpression = Expression.Constant(search.ToLower());
                 var paramExpression = Expression.Parameter(typeof(T), "val");
-
+                var conversionLength = Expression.Constant(10,typeof(Nullable<int>));
+                var conversionDecimals = Expression.Constant(16,typeof(Nullable<int>));
                 List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
 
-                var dataNumbers = new Dictionary<int, string>();
-
-                foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_DATA_KEY_PREFIX)))
+                foreach (var propMap in _propertyMap)
                 {
-                    // parse the property number
-                    var property = -1;
+                    var property = propMap.Value.Property;
 
-                    var propertyString = key.Replace(INDIVIDUAL_DATA_KEY_PREFIX, string.Empty);
+                    if (!property.CanWrite || !propMap.Value.Searchable || !_translatable.Any(t => t == property.PropertyType) ) 
+                        continue; 
 
-                    if ((!int.TryParse(propertyString, out property))
-                        || property >= _properties.Length || string.IsNullOrEmpty(key))
-                        break; // ignore if the option is invalid
+                    Expression stringProp = null; //The result must be a TSQL translatable string expression
 
-                    dataNumbers.Add(property, _httpRequest[key]);
-                }
+                    var propExp = Expression.Property(paramExpression, property);
 
-                foreach (var prop in _properties)
-                {
-                    var searchable = INDIVIDUAL_SEARCHABLE_KEY_PREFIX
-                                     + dataNumbers.Where(d => d.Value == prop.Name).Select(d => d.Key).FirstOrDefault();
-
-                    bool isSearchable;
-
-                    bool.TryParse(_httpRequest[searchable], out isSearchable);
-
-                    if (!prop.CanWrite || !isSearchable) { continue; }
-
-                    Expression stringProp = null;
-
-                    var propExp = Expression.Property(paramExpression, prop);
-
-                    if (prop.PropertyType == typeof(double) || prop.PropertyType == typeof(int))
+                    //TODO: find some genius way to categorize numeric properties including their nullable<> variants
+                    if (new Type[] {typeof(int),typeof(Nullable<int>), typeof(double), typeof(Nullable<double>), typeof(float),typeof(Nullable<float>)}.Contains( property.PropertyType ))
                     {
                         var toDoubleCall = Expression.Convert(propExp, typeof(Nullable<double>));
 
-                        var doubleConvert = typeof(SqlFunctions).GetMethod("StringConvert", new Type[] { typeof(Nullable<double>) });
+                        var doubleConvert = typeof(SqlFunctions).GetMethod("StringConvert", new Type[] { typeof(Nullable<double>), typeof(Nullable<int>), typeof(Nullable<int>) });
 
-                        stringProp = Expression.Call(doubleConvert, toDoubleCall);
+                        stringProp = Expression.Call(doubleConvert, toDoubleCall,conversionLength,conversionDecimals);
 
                     }
 
-
-                    if ( prop.PropertyType == typeof(decimal))
+                    if (property.PropertyType == typeof(decimal) || property.PropertyType == typeof(Nullable<decimal>))
                     {
-                        var toDecimalCall = Expression.Convert(propExp, typeof(Nullable<decimal>));
+                        var toDoubleCall = Expression.Convert(propExp, typeof(Nullable<decimal>));
 
-                        var decimalConvert = typeof(SqlFunctions).GetMethod("StringConvert", new Type[] { typeof(Nullable<decimal>) });
+                        var doubleConvert = typeof(SqlFunctions).GetMethod("StringConvert", new Type[] { typeof(Nullable<decimal>), typeof(Nullable<int>), typeof(Nullable<int>) });
 
-                        stringProp = Expression.Call(decimalConvert, toDecimalCall);
+                        stringProp = Expression.Call(doubleConvert, toDoubleCall,conversionLength, conversionDecimals);
+
                     }
 
-
-                    if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(Nullable<DateTime>))
+                    //TODO: Either remove this or provide a way to customize 
+                    else if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(Nullable<DateTime>))
                     {
 
                         var date = Expression.Convert(propExp, typeof(Nullable<DateTime>));
@@ -395,7 +388,7 @@ namespace DataTablesParser
 
                     }
 
-                    if (prop.PropertyType == typeof(string))
+                    else if (property.PropertyType == typeof(string))
                     {
                         stringProp = propExp;
                     }
@@ -419,6 +412,13 @@ namespace DataTablesParser
                 // compile the expression into a lambda 
                 return Expression.Lambda<Func<T, bool>>(compoundExpression, paramExpression);
             }
+        }
+
+        private class PropertyMapping
+        {
+            public PropertyInfo Property { get; set; }
+            public bool Sortable { get; set; }
+            public bool Searchable { get; set; }
         }
     }
 

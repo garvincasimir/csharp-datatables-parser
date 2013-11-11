@@ -15,12 +15,13 @@
                 sServerMethod: "POST",
                 sAjaxSource: "@Url.Action("All", "Person")",
                 aoColumns: [
-                    { mData: "FirstName", sTitle: "First Name", iDataSort: 1 },
-                    { mData: "LastName", sTitle: "Last Name", iDataSort:2 },
-                    { mData: "BirthDateFormatted", sTitle: "Birth Date", iDataSort: 3 },
-                    { mData: "Weight", sTitle: "Weight", iDataSort: 4 },
-                    { mData: "Height", sTitle: "Height", iDataSort: 5 },
-                    { mData: "Children", sTitle: "Children", iDataSort: 6 }
+                    { mData: "FirstName", sTitle: "First Name" },
+                    { mData: "LastName", sTitle: "Last Name"},
+                    { mData: "BirthDateFormatted", sTitle: "Birth Date",iDataSort:3 }, //Allow post TSQL server side processing
+                    { mData: "BirthDate", bVisible:false },
+                    { mData: "Weight", sTitle: "Weight" },
+                    { mData: "Height", sTitle: "Height" },
+                    { mData: "Children", sTitle: "Children" }
 
                 ]
             });
