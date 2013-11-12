@@ -72,7 +72,6 @@ namespace DataTablesParser
             _queriable = queriable;
             _httpRequest = httpRequest;
             _type = typeof(T);
-            _properties = _type.GetProperties();
 
             //user regex instead of throwing exception or using tryparse
              var integerTest = new Regex(@"^\d+$");
@@ -80,7 +79,7 @@ namespace DataTablesParser
             //Is this readable? Well if you can read all this expression stuff then this is nothing~!
             //This associates class properties with relevant datatable configuration options
              _propertyMap = (from key in _httpRequest.Params.AllKeys.Where(k => k.StartsWith(INDIVIDUAL_DATA_KEY_PREFIX))
-                             join prop in _properties on _httpRequest[key] equals prop.Name
+                             join prop in _type.GetProperties() on _httpRequest[key] equals prop.Name
                              let extractIndex = key.Replace(INDIVIDUAL_DATA_KEY_PREFIX, string.Empty).Trim()
                              let searchable = _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex].Trim() == "true"
                              let sortable = _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex].Trim() == "true" 
@@ -250,8 +249,8 @@ namespace DataTablesParser
             //Not sure if we care about the queriables that come in sorted? IOrderedQueryable does not seem to be a reliable test
             if (!sorted)
             {
-                var firstProp = Expression.Property(paramExpr, _properties[0].Name);
-                var propType = _properties[0].PropertyType;
+                var firstProp = Expression.Property(paramExpr, _propertyMap.First().Value.Property);
+                var propType = _propertyMap.First().Value.Property.PropertyType;
                 var delegateType = Expression.GetFuncType(typeof(T), propType);
                 var propertyExpr = Expression.Lambda(delegateType, firstProp, paramExpr);
          
@@ -271,40 +270,40 @@ namespace DataTablesParser
         /// Compound predicate expression with the individual search predicates that will filter the results
         /// per an individual column
         /// </summary>
-        private Expression<Func<T, bool>> IndividualPropertySearch
-        {
-            get
-            {
-                var paramExpr = Expression.Parameter(typeof(T), "val");
-                Expression whereExpr = Expression.Constant(true); // default is val => True
+        //private Expression<Func<T, bool>> IndividualPropertySearch
+        //{
+        //    get
+        //    {
+        //        var paramExpr = Expression.Parameter(typeof(T), "val");
+        //        Expression whereExpr = Expression.Constant(true); // default is val => True
 
-                foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_SEARCH_KEY_PREFIX)))
-                {
-                    // parse the property number
-                    int property = -1;
-                    if (!int.TryParse(_httpRequest[key].Replace(INDIVIDUAL_SEARCH_KEY_PREFIX, string.Empty), out property)
-                        || property >= _properties.Length || string.IsNullOrEmpty(_httpRequest[key]))
-                        break; // ignore if the option is invalid
+        //        foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_SEARCH_KEY_PREFIX)))
+        //        {
+        //            // parse the property number
+        //            int property = -1;
+        //            if (!int.TryParse(_httpRequest[key].Replace(INDIVIDUAL_SEARCH_KEY_PREFIX, string.Empty), out property)
+        //                || property >= _properties.Length || string.IsNullOrEmpty(_httpRequest[key]))
+        //                break; // ignore if the option is invalid
 
-                    string query = _httpRequest[key].ToLower();
+        //            string query = _httpRequest[key].ToLower();
 
-                    // val.{PropertyName}.ToString().ToLower().Contains({query})
-                    var toStringCall = Expression.Call(
-                                        Expression.Call(
-                                            Expression.Property(paramExpr, _properties[property]), "ToString", new Type[0]),
-                                        typeof(string).GetMethod("ToLower", new Type[0]));
+        //            // val.{PropertyName}.ToString().ToLower().Contains({query})
+        //            var toStringCall = Expression.Call(
+        //                                Expression.Call(
+        //                                    Expression.Property(paramExpr, _properties[property]), "ToString", new Type[0]),
+        //                                typeof(string).GetMethod("ToLower", new Type[0]));
 
-                    // reset where expression to also require the current contraint
-                    whereExpr = Expression.And(whereExpr,
-                                               Expression.Call(toStringCall,
-                                                               typeof(string).GetMethod("Contains"),
-                                                               Expression.Constant(query)));
+        //            // reset where expression to also require the current contraint
+        //            whereExpr = Expression.And(whereExpr,
+        //                                       Expression.Call(toStringCall,
+        //                                                       typeof(string).GetMethod("Contains"),
+        //                                                       Expression.Constant(query)));
 
-                }
+        //        }
 
-                return Expression.Lambda<Func<T, bool>>(whereExpr, paramExpr);
-            }
-        }
+        //        return Expression.Lambda<Func<T, bool>>(whereExpr, paramExpr);
+        //    }
+        //}
 
         /// <summary>
         /// Expression for an all column search, which will filter the result based on this criterion
@@ -316,7 +315,7 @@ namespace DataTablesParser
                 string search = _httpRequest["sSearch"];
 
                 // default value
-                if (string.IsNullOrWhiteSpace(search) || _properties.Length == 0)
+                if (string.IsNullOrWhiteSpace(search))
                     return x => true;
 
                 // invariant expressions
