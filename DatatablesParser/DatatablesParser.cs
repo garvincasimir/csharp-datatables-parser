@@ -111,9 +111,6 @@ namespace DataTablesParser
         {
             var list = new FormatedList<T>();
 
-            // import property names
-            list.Import(_properties.Select(x => x.Name).ToArray());
-
             // parse the echo property (must be returned as int to prevent XSS-attack)
             list.sEcho = int.Parse(_httpRequest[ECHO]);
 
@@ -440,17 +437,6 @@ namespace DataTablesParser
         public int iTotalRecords { get; set; }
         public int iTotalDisplayRecords { get; set; }
         public List<T> aaData { get; set; }
-        public string sColumns { get; set; }
 
-        public void Import(string[] properties)
-        {
-            sColumns = string.Empty;
-            for (int i = 0; i < properties.Length; i++)
-            {
-                sColumns += properties[i];
-                if (i < properties.Length - 1)
-                    sColumns += ",";
-            }
-        }
     }
 }
