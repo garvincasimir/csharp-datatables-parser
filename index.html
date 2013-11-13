@@ -40,6 +40,8 @@
 The most significant change is the shift to returning an array of objects instead of a two dimensional array. 
 This allows for binding to the actual object property names instead of array indexes. It also supports string filtering on dates and numberic fields in linq to entities without retrieving the entire list. The project was created in visual studio 2012 and requires .net framework 4.5 to be installed.</p>
 
+<p>This project is provided under the MIT License.</p>
+
 <h1>
 <a name="jquery-datatables" class="anchor" href="#jquery-datatables"><span class="octicon octicon-link"></span></a>jQuery Datatables</h1>
 
@@ -86,7 +88,13 @@ This allows for binding to the actual object property names instead of array ind
 It is the result of continuous changes to deal with issues encountered while using it so I am sure there are some things that can be 
 optimized or removed altogether. One of the biggest things this has forced me to deal with is the differences between LINQ to entites and LINQ to Objects.</p>
 
-<h1>
+<ul>
+<li>Please do not include multiple unrelated fixes in a single pull request</li>
+<li>The diff for your pull request should only show changes related to your fix/addition (Some editors create unnecessary changes).</li>
+<li>When possible include tests that cover the features/changes in your pull request</li>
+<li>Before you submit make sure the existing tests pass with your changes</li>
+<li>Linq to Entities tests which include search parameters will fail because I use Sql Server CE (Will fix that).</li>
+</ul><h1>
 <a name="contact-" class="anchor" href="#contact-"><span class="octicon octicon-link"></span></a>Contact </h1>
 
 <p>Twitter: <a href="https://twitter.com/garvincasimir">garvincasimir</a>
