@@ -25,7 +25,7 @@
           <dependency id="EntityFramework" version="6.0" />
         </group>
     </dependencies>
-    <tags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc grid query builder</tags>
+    <tags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc grid table database query builder</tags>
   </metadata>
   <files>
     <file src="lib/DataTablesParser.dll" target="lib" />
