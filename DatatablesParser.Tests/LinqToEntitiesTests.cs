@@ -1,7 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.IO;
 
 namespace DataTablesParser.Tests
@@ -15,7 +14,7 @@ namespace DataTablesParser.Tests
         [ClassInitialize]
         public static void Init(TestContext context)
         {
-            Database.DefaultConnectionFactory = new SqlCeConnectionFactory("System.Data.SqlServerCe.4.0");
+            
             Database.SetInitializer<PersonContext>(new PersonContextInitializer()); 
         }
 

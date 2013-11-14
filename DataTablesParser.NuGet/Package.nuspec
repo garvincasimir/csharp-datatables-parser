@@ -22,7 +22,7 @@
     <copyright>Copyright  2013</copyright>
     <dependencies>
         <group targetFramework="net45">
-          <dependency id="EntityFramework" version="5.0.0" />
+          <dependency id="EntityFramework" version="6.0" />
         </group>
     </dependencies>
     <tags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc</tags>

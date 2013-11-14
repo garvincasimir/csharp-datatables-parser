@@ -4,12 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
-using System.Data.Objects.SqlClient;
 using System.Threading.Tasks;
-using System.Data.Objects;
-using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Text.RegularExpressions;
+using System.Data.Entity.Core.Objects;
+using System.Data.Entity.SqlServer;
 
 namespace DataTablesParser
 {
