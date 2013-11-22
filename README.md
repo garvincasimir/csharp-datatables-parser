@@ -57,7 +57,7 @@ optimized or removed altogether. One of the biggest things this has forced me to
 * The diff for your pull request should only show changes related to your fix/addition (Some editors create unnecessary changes).
 * When possible include tests that cover the features/changes in your pull request
 * Before you submit make sure the existing tests pass with your changes
-* Linq to Entities tests which include search parameters will fail because I use Sql Server CE (Will fix that).
+* Also, issues that are accompanied by failing tests will probably get handleded quicker
 
 Contact 
 ========================
