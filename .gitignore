@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+DataTablesParser.sln.ide/
 
 # Build results
 

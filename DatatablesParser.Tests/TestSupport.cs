@@ -77,7 +77,7 @@ namespace DataTablesParser.Tests
         static TestSupport()
         {
             Params.Add("sEcho", "1");
-            Params.Add("iColumns", "6");
+            Params.Add("iColumns", "7");
             Params.Add("sColumns", "");
             Params.Add("iDisplayStart", "0");
             Params.Add("iDisplayLength", "10");
@@ -87,6 +87,7 @@ namespace DataTablesParser.Tests
             Params.Add("mDataProp_3", "Weight");
             Params.Add("mDataProp_4", "Height");
             Params.Add("mDataProp_5", "Children");
+            Params.Add("mDataProp_6", "TotalRedBloodCells");
             Params.Add("sSearch", "");
             Params.Add("bRegex", "false");
             Params.Add("sSearch_0", "");
@@ -107,6 +108,9 @@ namespace DataTablesParser.Tests
             Params.Add("sSearch_5", "");
             Params.Add("bRegex_5", "false");
             Params.Add("bSearchable_5", "true");
+            Params.Add("sSearch_6", "");
+            Params.Add("bRegex_6", "false");
+            Params.Add("bSearchable_6", "true");
             Params.Add("iSortCol_0", "0");
             Params.Add("sSortDir_0", "asc");
             Params.Add("iSortingCols", "1");
@@ -116,6 +120,7 @@ namespace DataTablesParser.Tests
             Params.Add("bSortable_3", "true");
             Params.Add("bSortable_4", "true");
             Params.Add("bSortable_5", "true");
+            Params.Add("bSortable_6", "true");
         }
 
         public static NameValueCollection CreateParams()
@@ -132,7 +137,8 @@ namespace DataTablesParser.Tests
                 BirthDate = p.BirthDate,
                 Children = p.Children,
                 height = p.height,
-                Weight = p.Weight
+                Weight = p.Weight,
+                TotalRedBloodCells = p.TotalRedBloodCells
             });
 
         }

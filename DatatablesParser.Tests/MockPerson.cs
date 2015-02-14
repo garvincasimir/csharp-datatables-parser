@@ -13,6 +13,6 @@ namespace DataTablesParser.Tests
         public decimal Weight { get; set; }
         public decimal height { get; set; }
         public int Children { get; set; }
-
+        public long TotalRedBloodCells { get; set; }
     }
 }

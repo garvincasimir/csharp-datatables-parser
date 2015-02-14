@@ -62,7 +62,9 @@ namespace DataTablesParser
             typeof(float),
             typeof(Nullable<float>),
             typeof(DateTime), 
-            typeof(Nullable<DateTime>) 
+            typeof(Nullable<DateTime>),
+            typeof(long),
+            typeof(Nullable<long>)
             
         };
 
@@ -336,7 +338,7 @@ namespace DataTablesParser
                     var propExp = Expression.Property(paramExpression, property);
 
                     //TODO: find some genius way to categorize numeric properties including their nullable<> variants
-                    if (new Type[] {typeof(int),typeof(Nullable<int>), typeof(double), typeof(Nullable<double>), typeof(float),typeof(Nullable<float>)}.Contains( property.PropertyType ))
+                    if (new Type[] { typeof(int), typeof(Nullable<int>), typeof(double), typeof(Nullable<double>), typeof(float), typeof(Nullable<float>), typeof(long), typeof(Nullable<long>) }.Contains(property.PropertyType))
                     {
                         var toDoubleCall = Expression.Convert(propExp, typeof(Nullable<double>));
 

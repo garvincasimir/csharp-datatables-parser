@@ -19,7 +19,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("5/3/1960"),
                     Children = 5,
                     Height = 5.4M,
-                    Weight = 250M
+                    Weight = 250M,
+                    TotalRedBloodCells = long.MaxValue
                 },
                 new Person
                 {
@@ -28,7 +29,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("7/3/1961"),
                     Children = 3,
                     Height = 4.4M,
-                    Weight = 150M
+                    Weight = 150M,
+                    TotalRedBloodCells = long.MaxValue -1
                 },
                 new Person
                 {
@@ -37,7 +39,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("8/3/1970"),
                     Children = 1,
                     Height = 5.4M,
-                    Weight = 250M
+                    Weight = 250M,
+                    TotalRedBloodCells = long.MaxValue -2
                 },
                 new Person
                 {
@@ -46,7 +49,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("2/3/1950"),
                     Children = 0,
                     Height = 6.4M,
-                    Weight = 350M
+                    Weight = 350M,
+                    TotalRedBloodCells = long.MaxValue -3
                 },
                 new Person
                 {
@@ -55,7 +59,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("9/3/1953"),
                     Children = 15,
                     Height = 6.2M,
-                    Weight = 120M
+                    Weight = 120M,
+                    TotalRedBloodCells = long.MaxValue -4
                 },
                 new Person
                 {
@@ -64,7 +69,8 @@ namespace DataTablesParser.Tests
                     BirthDate = DateTime.Parse("10/3/1974"),
                     Children = 2,
                     Height = 5.9M,
-                    Weight = 175M
+                    Weight = 175M,
+                    TotalRedBloodCells = long.MaxValue -5
                 }
             };
 
