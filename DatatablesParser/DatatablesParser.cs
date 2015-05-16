@@ -164,7 +164,7 @@ namespace DataTablesParser
                 list.SetQuery(resultQuery.ToString());
 
                 // total records that are displayed after filter
-                list.iTotalDisplayRecords = _queriable.Count(ApplyGenericSearch);
+                list.iTotalDisplayRecords = string.IsNullOrWhiteSpace(_httpRequest["sSearch"]) ? list.iTotalRecords : _queriable.Count(ApplyGenericSearch);
             }
             else //linq to objects
             {
@@ -180,8 +180,9 @@ namespace DataTablesParser
 
                 list.SetQuery(resultQuery.ToString());
 
+
                 // total records that are displayed after filter
-                list.iTotalDisplayRecords = _queriable.Count(GenericFind);
+                list.iTotalDisplayRecords = string.IsNullOrWhiteSpace(_httpRequest["sSearch"])? list.iTotalRecords : _queriable.Count(GenericFind);
             }
 
    
