@@ -3,11 +3,11 @@
   <metadata>
     <id>DataTablesParser</id>
     <version>3.0.0</version>
-    <title>DataTablesParser</title>
+    <title>C# DataTables.net Parser</title>
     <authors>Garvin Casimir</authors>
     <owners></owners>
     <description>
-      A C# Server side component for the popuplar jQuery datatables plugin
+      A C# Server side component for the popuplar jQuery datatables plugin http://datatables.net/
     </description>
     <releaseNotes>
       Upgraded to use Datatables v1.10 minimum. This library no longer supports Database v1.9.x or legacy mode in v1.10. https://datatables.net/upgrade/1.10
