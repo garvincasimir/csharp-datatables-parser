@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>DataTablesParser</id>
-    <version>2.0.2</version>
+    <version>3.0.0</version>
     <title>DataTablesParser</title>
     <authors>Garvin Casimir</authors>
     <owners></owners>
@@ -10,6 +10,7 @@
       A C# Server side component for the popuplar jQuery datatables plugin
     </description>
     <releaseNotes>
+      Upgraded to use Datatables v1.10 minimum. This library no longer supports Database v1.9.x or legacy mode in v1.10. https://datatables.net/upgrade/1.10
     </releaseNotes>
     <summary>
       A C# Server side component for the popuplar jQuery datatables plugin
@@ -19,15 +20,15 @@
     <iconUrl>https://nuget.org/Content/Images/packageDefaultIcon-50x50.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
-    <copyright>Copyright  2013</copyright>
+    <copyright>Copyright  2015</copyright>
     <dependencies>
         <group targetFramework="net45">
-          <dependency id="EntityFramework" version="6.0" />
+          <dependency id="EntityFramework" version="[6,7)" />
         </group>
     </dependencies>
     <tags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc grid table database query builder</tags>
   </metadata>
   <files>
-    <file src="lib/DataTablesParser.dll" target="lib" />
+    <file src="lib/net45/DataTablesParser.dll" target="lib\net45" />
   </files>
 </package>

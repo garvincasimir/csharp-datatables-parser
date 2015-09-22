@@ -76,51 +76,50 @@ namespace DataTablesParser.Tests
           
         static TestSupport()
         {
-            Params.Add("sEcho", "1");
-            Params.Add("iColumns", "7");
-            Params.Add("sColumns", "");
-            Params.Add("iDisplayStart", "0");
-            Params.Add("iDisplayLength", "10");
-            Params.Add("mDataProp_0", "FirstName");
-            Params.Add("mDataProp_1", "LastName");
-            Params.Add("mDataProp_2", "BirthDate");
-            Params.Add("mDataProp_3", "Weight");
-            Params.Add("mDataProp_4", "Height");
-            Params.Add("mDataProp_5", "Children");
-            Params.Add("mDataProp_6", "TotalRedBloodCells");
-            Params.Add("sSearch", "");
-            Params.Add("bRegex", "false");
-            Params.Add("sSearch_0", "");
-            Params.Add("bRegex_0", "false");
-            Params.Add("bSearchable_0", "true");
-            Params.Add("sSearch_1", "");
-            Params.Add("bRegex_1", "false");
-            Params.Add("bSearchable_1", "true");
-            Params.Add("sSearch_2", "");
-            Params.Add("bRegex_2", "false");
-            Params.Add("bSearchable_2", "true");
-            Params.Add("sSearch_3", "");
-            Params.Add("bRegex_3", "false");
-            Params.Add("bSearchable_3", "true");
-            Params.Add("sSearch_4", "");
-            Params.Add("bRegex_4", "false");
-            Params.Add("bSearchable_4", "true");
-            Params.Add("sSearch_5", "");
-            Params.Add("bRegex_5", "false");
-            Params.Add("bSearchable_5", "true");
-            Params.Add("sSearch_6", "");
-            Params.Add("bRegex_6", "false");
-            Params.Add("bSearchable_6", "true");
-            Params.Add("iSortCol_0", "0");
-            Params.Add("sSortDir_0", "asc");
-            Params.Add("iSortingCols", "1");
-            Params.Add("bSortable_0", "true");
-            Params.Add("bSortable_1", "true");
-            Params.Add("bSortable_2", "true");
-            Params.Add("bSortable_3", "true");
-            Params.Add("bSortable_4", "true");
-            Params.Add("bSortable_5", "true");
-            Params.Add("bSortable_6", "true");
+            Params.Add(Constants.DRAW, "1");
+            Params.Add(Constants.DISPLAY_START, "0");
+            Params.Add(Constants.DISPLAY_LENGTH, "10");
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "0"), "FirstName");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "0"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "0"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "0"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "1"), "LastName");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "1"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "1"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "1"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "2"), "BirthDate");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "2"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "2"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "2"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "3"), "Weight");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "3"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "3"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "3"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "4"), "Height");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "4"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "4"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "4"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "5"), "Children");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "5"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "5"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "5"), "false");
+
+            Params.Add(Constants.GetKey(Constants.DATA_PROPERTY_FORMAT, "6"), "TotalRedBloodCells");
+            Params.Add(Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT, "6"), "true");
+            Params.Add(Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "6"), "");
+            Params.Add(Constants.GetKey(Constants.SEARCH_REGEX_PROPERTY_FORMAT, "6"), "false");
+
+            Params.Add(Constants.SEARCH_KEY, "");
+            Params.Add(Constants.SEARCH_REGEX_KEY, "false");
+
+            Params.Add(Constants.GetKey(Constants.ORDER_COLUMN_FORMAT, "0"), "0");
+            Params.Add(Constants.GetKey(Constants.ORDER_DIRECTION_FORMAT, "0"), "0");
+
         }
 
         public static NameValueCollection CreateParams()

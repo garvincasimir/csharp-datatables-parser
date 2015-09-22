@@ -18,37 +18,10 @@ namespace DataTablesParser
     /// <typeparam name="T">List data type</typeparam>
     public class DataTablesParser<T> where T : class
     {
-        /*
-         * int: iDisplayStart - Display start point
-        * int: iDisplayLength - Number of records to display
-        * string: string: sSearch - Global search field
-        * boolean: bEscapeRegex - Global search is regex or not
-        * int: iColumns - Number of columns being displayed (useful for getting individual column search info)
-        * string: sSortable_(int) - Indicator for if a column is flagged as sortable or not on the client-side
-        * string: sSearchable_(int) - Indicator for if a column is flagged as searchable or not on the client-side
-        * string: sSearch_(int) - Individual column filter
-        * boolean: bEscapeRegex_(int) - Individual column filter is regex or not
-        * int: iSortingCols - Number of columns to sort on
-        * int: iSortCol_(int) - Column being sorted on (you will need to decode this number for your database)
-        * string: sSortDir_(int) - Direction to be sorted - "desc" or "asc". Note that the prefix for this variable is wrong in 1.5.x, but left for backward compatibility)
-        * string: sEcho - Information for DataTables to use for rendering
-         */
-
-        private const string INDIVIDUAL_DATA_KEY_PREFIX = "mDataProp_";
-        private const string INDIVIDUAL_SEARCH_KEY_PREFIX = "sSearch_";
-        private const string INDIVIDUAL_SEARCHABLE_KEY_PREFIX = "bSearchable_";
-        private const string INDIVIDUAL_SORTABLE_KEY_PREFIX = "bSortable_";
-        private const string INDIVIDUAL_SORT_KEY_PREFIX = "iSortCol_";
-        private const string INDIVIDUAL_SORT_DIRECTION_KEY_PREFIX = "sSortDir_";
-        private const string DISPLAY_START = "iDisplayStart";
-        private const string DISPLAY_LENGTH = "iDisplayLength";
-        private const string ECHO = "sEcho";
-        private const string ASCENDING_SORT = "asc";
 
         private IQueryable<T> _queriable;
         private readonly HttpRequestBase _httpRequest;
         private readonly Type _type;
-        private  PropertyInfo[] _properties;
         private IDictionary<int, PropertyMapping> _propertyMap ;
 
         //TODO: We may be able to handle other numeric property types if they are translatable
@@ -74,25 +47,25 @@ namespace DataTablesParser
             _httpRequest = httpRequest;
             _type = typeof(T);
 
-            //user regex instead of throwing exception or using tryparse
-             var integerTest = new Regex(@"^\d+$");
-
-            //Is this readable? Well if you can read all this expression stuff then this is nothing~!
             //This associates class properties with relevant datatable configuration options
-             _propertyMap = (from key in _httpRequest.Params.AllKeys.Where(k => k.StartsWith(INDIVIDUAL_DATA_KEY_PREFIX))
+            //Single pass for key then hash lookups for corresponding properties
+             _propertyMap = (from key in _httpRequest.Params.AllKeys.Where(k => Regex.IsMatch(k,Constants.COLUMN_PROPERTY_PATTERN))
                              join prop in _type.GetProperties() on _httpRequest[key] equals prop.Name
-                             let extractIndex = key.Replace(INDIVIDUAL_DATA_KEY_PREFIX, string.Empty).Trim()
-                             let searchable = _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SEARCHABLE_KEY_PREFIX + extractIndex].Trim() == "true"
-                             let sortable = _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex] == null ? true : _httpRequest[INDIVIDUAL_SORTABLE_KEY_PREFIX + extractIndex].Trim() == "true" 
-                             where integerTest.IsMatch(extractIndex)
+                             let index = Regex.Match(key, Constants.COLUMN_PROPERTY_PATTERN).Groups[1].Value
+                             let searchableKey = Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT,index)
+                             let searchable = _httpRequest[searchableKey] == null ? true : _httpRequest[searchableKey].Trim() == "true"
+                             let orderableKey = Constants.GetKey(Constants.ORDERABLE_PROPERTY_FORMAT, index)
+                             let orderable = _httpRequest[orderableKey] == null ? true : _httpRequest[orderableKey].Trim() == "true"
+                             // Set regex and individual search when implemented
+
                              select new
                              {
-                                 index = int.Parse(extractIndex),
+                                 index = int.Parse(index),
                                  map = new PropertyMapping
                                  {
                                      Property = prop,
                                      Searchable = searchable,
-                                     Sortable = sortable
+                                     Orderable = orderable
                                  }
                              }).Distinct().ToDictionary(k => k.index, v => v.map);
         }
@@ -112,24 +85,24 @@ namespace DataTablesParser
             var list = new FormatedList<T>();
 
             // parse the echo property (must be returned as int to prevent XSS-attack)
-            list.sEcho = int.Parse(_httpRequest[ECHO]);
+            list.draw = int.Parse(_httpRequest[Constants.DRAW]);
 
             // count the record BEFORE filtering
-            list.iTotalRecords =  _queriable.Count();
+            list.recordsTotal =  _queriable.Count();
            
             // apply the sort, if there is one
             ApplySort();
 
             // parse the paging values
             int skip = 0, take = 10;
-            int.TryParse(_httpRequest[DISPLAY_START], out skip);
-            int.TryParse(_httpRequest[DISPLAY_LENGTH], out take);
+            int.TryParse(_httpRequest[Constants.DISPLAY_START], out skip);
+            int.TryParse(_httpRequest[Constants.DISPLAY_LENGTH], out take);
 
             //This needs to be an expression or else it won't limit results
             Func<T, bool> GenericFind = delegate(T item)
             {
                 bool found = false;
-                var sSearch = _httpRequest["sSearch"]; 
+                var sSearch = _httpRequest[Constants.SEARCH_KEY]; 
 
                 if(string.IsNullOrWhiteSpace(sSearch))
                 {
@@ -148,7 +121,7 @@ namespace DataTablesParser
 
             };
 
-            //Test ofr linq to entities
+            //Test for linq to entities
             //Anyone know of a better way to do this test??
             if (_queriable is ObjectQuery<T> || _queriable is DbQuery<T> ) 
             {
@@ -159,12 +132,12 @@ namespace DataTablesParser
                             .Skip(skip)
                             .Take(take);
 
-                list.aaData = resultQuery.ToList();
+                list.data = resultQuery.ToList();
 
                 list.SetQuery(resultQuery.ToString());
 
                 // total records that are displayed after filter
-                list.iTotalDisplayRecords = string.IsNullOrWhiteSpace(_httpRequest["sSearch"]) ? list.iTotalRecords : _queriable.Count(ApplyGenericSearch);
+                list.recordsFiltered = string.IsNullOrWhiteSpace(_httpRequest[Constants.SEARCH_KEY]) ? list.recordsTotal : _queriable.Count(ApplyGenericSearch);
             }
             else //linq to objects
             {
@@ -175,14 +148,14 @@ namespace DataTablesParser
                             .Skip(skip)
                             .Take(take);
 
-                list.aaData = resultQuery
+                list.data = resultQuery
                             .ToList();
 
                 list.SetQuery(resultQuery.ToString());
 
 
                 // total records that are displayed after filter
-                list.iTotalDisplayRecords = string.IsNullOrWhiteSpace(_httpRequest["sSearch"])? list.iTotalRecords : _queriable.Count(GenericFind);
+                list.recordsFiltered = string.IsNullOrWhiteSpace(_httpRequest[Constants.SEARCH_KEY])? list.recordsTotal : _queriable.Count(GenericFind);
             }
 
    
@@ -206,20 +179,23 @@ namespace DataTablesParser
             var paramExpr = Expression.Parameter(typeof(T), "val");
 
             // Enumerate the keys sort keys in the order we received them
-            foreach (string key in _httpRequest.Params.AllKeys.Where(x => x.StartsWith(INDIVIDUAL_SORT_KEY_PREFIX)))
+            foreach (string key in _httpRequest.Params.AllKeys.Where(x => Regex.IsMatch(x, Constants.ORDER_PATTERN)))
             {
                 // column number to sort (same as the array)
                 int sortcolumn = int.Parse(_httpRequest[key]);
 
-                // ignore invalid columns 
-                if (!_propertyMap.ContainsKey(sortcolumn) || !_propertyMap[sortcolumn].Sortable)
+                // ignore invalid for disabled columns 
+                if (!_propertyMap.ContainsKey(sortcolumn) || !_propertyMap[sortcolumn].Orderable)
                     continue;
 
-                // get the direction of the sort
-                string sortdir = _httpRequest[INDIVIDUAL_SORT_DIRECTION_KEY_PREFIX + key.Replace(INDIVIDUAL_SORT_KEY_PREFIX, string.Empty)];
+                var index = Regex.Match(key, Constants.ORDER_PATTERN).Groups[1].Value;
+                var orderDirectionKey = Constants.GetKey(Constants.ORDER_DIRECTION_FORMAT, index);
 
-          
-                 var sortProperty = _propertyMap[sortcolumn].Property;
+                // get the direction of the sort
+                string sortdir = _httpRequest[orderDirectionKey];
+
+
+                    var sortProperty = _propertyMap[sortcolumn].Property;
                  var expression1 = Expression.Property(paramExpr, sortProperty);
                  var propType = sortProperty.PropertyType;
                  var delegateType = Expression.GetFuncType(typeof(T), propType);
@@ -227,7 +203,7 @@ namespace DataTablesParser
                
                 // apply the sort (default is ascending if not specified)
                  string methodName;
-                 if (string.IsNullOrEmpty(sortdir) || sortdir.Equals(ASCENDING_SORT, StringComparison.OrdinalIgnoreCase))
+                 if (string.IsNullOrEmpty(sortdir) || sortdir.Equals(Constants.ASCENDING_SORT, StringComparison.OrdinalIgnoreCase))
                  {
                      methodName = sorted ? "ThenBy" : "OrderBy";
                  }
@@ -314,11 +290,13 @@ namespace DataTablesParser
         {
             get
             {
-                string search = _httpRequest["sSearch"];
+                string search = _httpRequest[Constants.SEARCH_KEY];
 
                 // default value
                 if (string.IsNullOrWhiteSpace(search))
+                {
                     return x => true;
+                }
 
                 // invariant expressions
                 var searchExpression = Expression.Constant(search.ToLower());
@@ -359,7 +337,7 @@ namespace DataTablesParser
 
                     }
 
-                    //TODO: Either remove this or provide a way to customize 
+                    //TODO: Provide a way to customize date format
                     else if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(Nullable<DateTime>))
                     {
 
@@ -415,8 +393,10 @@ namespace DataTablesParser
         private class PropertyMapping
         {
             public PropertyInfo Property { get; set; }
-            public bool Sortable { get; set; }
+            public bool Orderable { get; set; }
             public bool Searchable { get; set; }
+            public string Regex { get; set; } //Not yet implemented
+            public string SearchInput { get; set; } //Not yet implemented
         }
     }
 
@@ -434,10 +414,36 @@ namespace DataTablesParser
             return _query;
         }
 
-        public int sEcho { get; set; }
-        public int iTotalRecords { get; set; }
-        public int iTotalDisplayRecords { get; set; }
-        public List<T> aaData { get; set; }
+        public int draw { get; set; }
+        public int recordsTotal { get; set; }
+        public int recordsFiltered { get; set; }
+        public List<T> data { get; set; }
 
+    }
+
+    public class Constants
+    {
+        public const string COLUMN_PROPERTY_PATTERN = @"columns\[(\d+)\]\[data\]";
+        public const string ORDER_PATTERN = @"order\[(\d+)\]\[column\]";
+
+        public const string DISPLAY_START = "start";
+        public const string DISPLAY_LENGTH = "length";
+        public const string DRAW = "draw";
+        public const string ASCENDING_SORT = "asc";
+        public const string SEARCH_KEY = "search[value]";
+        public const string SEARCH_REGEX_KEY = "search[regex]";
+
+        public const string DATA_PROPERTY_FORMAT = "columns[{0}][data]";
+        public const string SEARCHABLE_PROPERTY_FORMAT = "columns[{0}][searchable]";
+        public const string ORDERABLE_PROPERTY_FORMAT = "columns[{0}][orderable]";
+        public const string SEARCH_VALUE_PROPERTY_FORMAT = "columns[{0}][search][value]";
+        public const string SEARCH_REGEX_PROPERTY_FORMAT = "columns[{0}][search][regex]";
+        public const string ORDER_COLUMN_FORMAT = "order[{0}][column]";
+        public const string ORDER_DIRECTION_FORMAT = "order[{0}][dir]";
+
+        public static string GetKey(string format,string index)
+        {
+            return String.Format(format, index);
+        }
     }
 }

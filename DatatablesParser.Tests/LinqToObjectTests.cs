@@ -26,7 +26,7 @@ namespace DataTablesParser.Tests
 
             Console.WriteLine(people.Count);
 
-            Assert.AreEqual(people.Count,parser.Parse().iTotalRecords);
+            Assert.AreEqual(people.Count,parser.Parse().recordsTotal);
 
         }
 
@@ -40,7 +40,7 @@ namespace DataTablesParser.Tests
             var nvparams = TestSupport.CreateParams();
 
             //override display length
-            nvparams["iDisplayLength"] = Convert.ToString(resultLength); 
+            nvparams[Constants.DISPLAY_LENGTH] = Convert.ToString(resultLength); 
 
             r.Add(nvparams);
 
@@ -50,7 +50,7 @@ namespace DataTablesParser.Tests
 
             Console.WriteLine(people.Count);
 
-            Assert.AreEqual(resultLength, parser.Parse().aaData.Count);
+            Assert.AreEqual(resultLength, parser.Parse().data.Count);
 
         }
 
@@ -64,7 +64,7 @@ namespace DataTablesParser.Tests
             var nvparams = TestSupport.CreateParams();
 
             //Set filter parameter
-            nvparams["sSearch"] = "Cromie";
+            nvparams[Constants.SEARCH_KEY] = "Cromie";
 
             r.Add(nvparams);
 
@@ -74,7 +74,7 @@ namespace DataTablesParser.Tests
 
             Console.WriteLine(people.Count);
 
-            Assert.AreEqual(displayLength, parser.Parse().iTotalDisplayRecords);
+            Assert.AreEqual(displayLength, parser.Parse().recordsFiltered);
 
         }
 

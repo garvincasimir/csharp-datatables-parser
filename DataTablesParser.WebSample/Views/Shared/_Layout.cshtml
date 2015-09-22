@@ -4,16 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
-    @Styles.Render("~/Content/css")
-    @Styles.Render("~/Content/datatables/css")
-    @Scripts.Render("~/bundles/modernizr")
+
+    <link href="@Url.Content("~/Scripts/DataTables-1.10.9/css/jquery.dataTables.css")" rel="stylesheet" />
+    <script src="@Url.Content("~/Scripts/jquery-2.1.4.js")"></script>
+    <script src="@Url.Content("~/Scripts/DataTables-1.10.9/js/jquery.dataTables.js")"></script>
+
+
     
 </head>
 <body>
     @RenderBody()
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/datatables")
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

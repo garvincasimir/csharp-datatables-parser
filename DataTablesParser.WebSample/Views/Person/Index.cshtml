@@ -9,19 +9,22 @@
 {
     <script type="text/javascript">
         $(function () {
-            var peopleList = $('#PeopleListTable').dataTable({
-                bServerSide: true,
-                bProcessing: true,
-                sServerMethod: "POST",
-                sAjaxSource: "@Url.Action("All", "Person")",
-                aoColumns: [
-                    { mData: "FirstName", sTitle: "First Name" },
-                    { mData: "LastName", sTitle: "Last Name"},
-                    { mData: "BirthDateFormatted", sTitle: "Birth Date",iDataSort:3 }, //Allow post TSQL server side processing
-                    { mData: "BirthDate", bVisible:false },
-                    { mData: "Weight", sTitle: "Weight" },
-                    { mData: "Height", sTitle: "Height" },
-                    { mData: "Children", sTitle: "Children" }
+            var peopleList = $('#PeopleListTable').DataTable({
+                serverSide: true,
+                processing: true,
+
+                ajax: {
+                    url: '@Url.Action("All", "Person")',
+                    type: "POST"
+                },
+                columns: [
+                    { data: "FirstName", title: "First Name" },
+                    { data: "LastName", title: "Last Name" },
+                    { data: "BirthDateFormatted", title: "Birth Date", orderData: 3 }, //Allow post TSQL server side processing
+                    { data: "BirthDate", visible: false },
+                    { data: "Weight", title: "Weight" },
+                    { data: "Height", title: "Height" },
+                    { data: "Children", title: "Children" }
 
                 ]
             });
