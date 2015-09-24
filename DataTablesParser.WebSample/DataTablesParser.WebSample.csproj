@@ -257,6 +257,29 @@
     <Content Include="Scripts\knockout-3.3.0.debug.js" />
     <Content Include="Scripts\knockout-3.3.0.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.bootstrap.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.bootstrap.min.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.dataTables.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.dataTables.min.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.foundation.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.foundation.min.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.jqueryui.css" />
+    <Content Include="Scripts\Scroller-1.3.0\css\scroller.jqueryui.min.css" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\data\2500.txt" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\data\ssp.php" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\index.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\api_scrolling.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\fixedColumns.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\large_js_source.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\server-side_processing.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\simple.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\initialisation\state_saving.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\styling\bootstrap.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\styling\foundation.html" />
+    <Content Include="Scripts\Scroller-1.3.0\examples\styling\jqueryui.html" />
+    <Content Include="Scripts\Scroller-1.3.0\js\dataTables.scroller.js" />
+    <Content Include="Scripts\Scroller-1.3.0\js\dataTables.scroller.min.js" />
+    <Content Include="Scripts\Scroller-1.3.0\License.txt" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -270,6 +293,8 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Person\Index.cshtml" />
+    <Content Include="Scripts\Scroller-1.3.0\Readme.md" />
+    <Content Include="Views\Person\Scroll.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

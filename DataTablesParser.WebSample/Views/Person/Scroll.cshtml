@@ -1,0 +1,39 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+<table class="display" id="PeopleListTable"></table>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            var peopleList = $('#PeopleListTable').DataTable({
+                serverSide: true,
+                processing: true,
+                scroll: true,
+                scrollY: 200,
+                
+                deferRender: true,
+                dom: "lfrtiS",
+                ajax: {
+                    url: '@Url.Action("All", "Person")',
+                    type: "POST"
+                },
+                columns: [
+                    { data: "FirstName", title: "First Name" },
+                    { data: "LastName", title: "Last Name" },
+                    { data: "BirthDateFormatted", title: "Birth Date", orderData: 3 }, //Allow post TSQL server side processing
+                    { data: "BirthDate", visible: false },
+                    { data: "Weight", title: "Weight" },
+                    { data: "Height", title: "Height" },
+                    { data: "Children", title: "Children" }
+
+                ]
+            });
+        });
+    </script>
+
+
+}

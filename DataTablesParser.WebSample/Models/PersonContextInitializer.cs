@@ -69,6 +69,23 @@ namespace DataTablesParser.WebSample.Models
             };
 
             people.ForEach(p => context.People.Add(p));
+
+            var startDate = DateTime.Parse("10/3/1991");
+
+            for (var x = 0;x < 100; x++)
+            {
+                context.People.Add(new Person
+                {
+                    FirstName = Guid.NewGuid().ToString(),
+                    LastName = Guid.NewGuid().ToString(),
+                    Height = x * .5M,
+                    Weight = x * .3M,
+                    BirthDate = startDate.AddDays(x + 1),
+                    Children = x 
+                    
+                });
+            }
+
             context.SaveChanges();
         }
     }

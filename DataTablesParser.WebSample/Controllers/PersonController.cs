@@ -19,6 +19,11 @@ namespace DataTablesParser.WebSample.Controllers
             return View();
         }
 
+        public ActionResult Scroll()
+        {
+            return View();
+        }
+
         public JsonResult All()
         {
             var parser = new DataTablesParser<Person>(Request, context.People);
