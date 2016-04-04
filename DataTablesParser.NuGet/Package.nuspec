@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>DataTablesParser</id>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
     <title>C# DataTables.net Parser</title>
     <authors>Garvin Casimir</authors>
     <owners></owners>
