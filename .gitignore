@@ -157,3 +157,6 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+#Dotnet Core
+project.lock.json
