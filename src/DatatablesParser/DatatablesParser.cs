@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Extensions.Primitives;
@@ -35,13 +34,13 @@ namespace DataTablesParser
         public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> queriable)
         {
             _queriable = queriable;
-            _config = configParams.Where(k => Regex.IsMatch(k.Key,Constants.COLUMN_PROPERTY_PATTERN)).ToDictionary(k => k.Key,v=> v.Value.First().Trim());
+            _config = configParams.ToDictionary(k => k.Key,v=> v.Value.First().Trim());
             _type = typeof(T);
             
-            //This associates class properties with relevant datatable configuration options
-            //Single pass for key then hash lookups for corresponding properties
+            //This associates class properties with corresponding datatable configuration options
              _propertyMap = (from param in _config
                              join prop in _type.GetProperties() on param.Value equals prop.Name
+                             where Regex.IsMatch(param.Key,Constants.COLUMN_PROPERTY_PATTERN)
                              let index = Regex.Match(param.Key, Constants.COLUMN_PROPERTY_PATTERN).Groups[1].Value
                              let searchableKey = Constants.GetKey(Constants.SEARCHABLE_PROPERTY_FORMAT,index)
                              let searchable = _config.ContainsKey(searchableKey) && _config[searchableKey] == "true"
@@ -73,21 +72,30 @@ namespace DataTablesParser
 
             ApplySort();
 
-                        int skip = 0, take = 10;
-            int.TryParse(_config[Constants.DISPLAY_START], out skip);
-            int.TryParse(_config[Constants.DISPLAY_LENGTH], out take);
 
+            int skip = 0, take = 10;
+            if(_config.ContainsKey(Constants.DISPLAY_START))
+            {
+                int.TryParse(_config[Constants.DISPLAY_START], out skip);
+            }
+
+            if(_config.ContainsKey(Constants.DISPLAY_LENGTH))
+            {
+                int.TryParse(_config[Constants.DISPLAY_LENGTH], out take);
+            }
             //This needs to be an expression or else it won't limit results
             Func<T, bool> GenericFind = delegate(T item)
             {
                 bool found = false;
-                var sSearch = _config[Constants.SEARCH_KEY]; 
 
-                if(string.IsNullOrWhiteSpace(sSearch))
+                if(!_config.ContainsKey(Constants.SEARCH_KEY) || string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]))
                 {
                     return true;
                 }
-    
+
+                var sSearch = _config[Constants.SEARCH_KEY]; 
+
+
                 foreach (var map in _propertyMap)
                 {
 
@@ -103,18 +111,18 @@ namespace DataTablesParser
 
                 // setup the data with individual property search, all fields search,
                 // paging, and property list selection
-                var resultQuery = _queriable.Where(GenericFind)
+            var resultQuery = _queriable.Where(GenericFind)
                             .Skip(skip)
                             .Take(take);
 
-                list.data = resultQuery
+            list.data = resultQuery
                             .ToList();
 
-                list.SetQuery(resultQuery.ToString());
+            list.SetQuery(resultQuery.ToString());
 
 
                 // total records that are displayed after filter
-                list.recordsFiltered = string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY])? list.recordsTotal : _queriable.Count(GenericFind);
+            list.recordsFiltered = _config.ContainsKey(Constants.SEARCH_KEY) && string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY])? list.recordsTotal : _queriable.Count(GenericFind);
         
 
             return list;
@@ -131,7 +139,7 @@ namespace DataTablesParser
                 // column number to sort (same as the array)
                 int sortcolumn = int.Parse(param.Value);
 
-                // ignore invalid for disabled columns 
+                // ignore disabled columns 
                 if (!_propertyMap.ContainsKey(sortcolumn) || !_propertyMap[sortcolumn].Orderable)
                 {
                     continue;
