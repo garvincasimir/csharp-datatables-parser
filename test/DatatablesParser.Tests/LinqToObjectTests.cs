@@ -4,7 +4,7 @@ using DataTablesParser;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
 
-namespace TestLib
+namespace DataTablesParser.Tests
 {
   
     public class LinqToObjectTests

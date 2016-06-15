@@ -1,6 +1,6 @@
     using Microsoft.EntityFrameworkCore;
     
-    namespace TestLib
+    namespace DataTablesParser.Tests
     {
         public class PersonContext : DbContext
         {

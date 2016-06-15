@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
-namespace TestLib
+namespace DataTablesParser.Tests
 {
     public class TestHelper
     {

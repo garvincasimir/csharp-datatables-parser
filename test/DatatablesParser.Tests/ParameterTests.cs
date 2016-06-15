@@ -2,7 +2,7 @@ using DataTablesParser;
 using Xunit;
 using System.Text.RegularExpressions;
 
-namespace TestLib
+namespace DataTablesParser.Tests
 {
   
     public class ParameterTests

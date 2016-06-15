@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TestLib
+namespace DataTablesParser.Tests
 {
     public class Person
     {
