@@ -5,6 +5,8 @@ using Microsoft.Extensions.Primitives;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using MySQL.Data.EntityFrameworkCore.Extensions;
+using MySQL.Data.EntityFrameworkCore;
 
 namespace DataTablesParser.Tests
 {
@@ -144,9 +146,10 @@ namespace DataTablesParser.Tests
             Params.Add(key,new StringValues(value));
         }
 
-        private static DbContextOptions<PersonContext> CreateNewContextOptions()
+        public static PersonContext GetInMemoryContext()
         {
-            var serviceProvider = new ServiceCollection()
+
+           var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
                 .BuildServiceProvider();
 
@@ -154,21 +157,56 @@ namespace DataTablesParser.Tests
             builder.UseInMemoryDatabase()
                    .UseInternalServiceProvider(serviceProvider);
 
-            return builder.Options;
-        }
-
-        public static PersonContext GetContext()
-        {
-
-            var options = CreateNewContextOptions();
-
-            var context = new PersonContext(options);
+            var context = new PersonContext(builder.Options);
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
             return context;
+
+        }
+
+        public static PersonContext GetMysqlContext()
+        {
+
+           var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkMySQL()
+                .BuildServiceProvider();
             
+            var builder = new DbContextOptionsBuilder<PersonContext>();
+                builder.UseMySQL(@"server=localhost;database=dotnettest;user=tester;password=Rea11ytrong_3")
+                    .UseInternalServiceProvider(serviceProvider);
+
+            var context = new PersonContext(builder.Options);
+
+            context.Database.EnsureCreated();
+            context.Database.ExecuteSqlCommand("truncate table People;");
             
+            context.People.AddRange(CreateData());
+            context.SaveChanges();
+            
+            return context;
+
+        }
+    
+
+        public static PersonContext GetMssqlContext()
+        {
+
+           var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkSqlServer()
+                .BuildServiceProvider();
+
+            var builder = new DbContextOptionsBuilder<PersonContext>();
+            builder.UseSqlServer(@"Data Source=localhost;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
+                   .UseInternalServiceProvider(serviceProvider);
+
+            var context = new PersonContext(builder.Options);
+            context.Database.EnsureCreated();
+            context.Database.ExecuteSqlCommand("truncate table People;");
+            
+            context.People.AddRange(CreateData());
+            context.SaveChanges();
+            return context;
 
         }
     }

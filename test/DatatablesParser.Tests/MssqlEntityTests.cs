@@ -7,13 +7,13 @@ using Microsoft.Extensions.Primitives;
 namespace DataTablesParser.Tests
 {
   
-    public class LinqToObjectTests
+    public class MssqlEntityTests
     {
-        
+
         [Fact]
         public void TotalRecordsTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetMssqlContext();
 
             var p = TestHelper.CreateParams();
 
@@ -28,7 +28,7 @@ namespace DataTablesParser.Tests
         [Fact]
         public void TotalResultsTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetMssqlContext();
 
             var p = TestHelper.CreateParams();
 
@@ -48,7 +48,7 @@ namespace DataTablesParser.Tests
         [Fact]
         public void TotalDisplayTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetMssqlContext();
             var p = TestHelper.CreateParams();
             var displayLength = 1;
 
@@ -56,7 +56,7 @@ namespace DataTablesParser.Tests
             //Set filter parameter
             p[Constants.SEARCH_KEY] = new StringValues("Cromie");
 
-            var parser = new Parser<Person>(p, context.People.ToList().AsQueryable());
+            var parser = new Parser<Person>(p, context.People.AsQueryable());
 
             Console.WriteLine("Total People TotalDisplayTest: {0}",context.People.Count());
 
