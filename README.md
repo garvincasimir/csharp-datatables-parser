@@ -31,7 +31,7 @@ Please see the [official datatables documentation](http://datatables.net/release
 
 The following snippets were taken from the aspnet-core-sample project also located in this repository
 
-HomeController.cs
+**HomeController.cs**
 
     public class HomeController : Controller
     {
@@ -54,7 +54,7 @@ HomeController.cs
         }
     }
 
-Startup.cs
+**Startup.cs**
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
@@ -70,7 +70,7 @@ Startup.cs
             return services.BuildServiceProvider();
         }
 
-Index.cshtml
+**Index.cshtml**
 
         @{
             ViewData["title"] = "People Table";
@@ -111,14 +111,14 @@ Index.cshtml
 Installation
 ========================
  
- Visual Studio
+**Visual Studio**
 
 You can search using the NuGet package manager, or you
 can enter the following command in your package manager console:
  
     PM> Install-Package DatatablesParser-core      
 
-Visual Studio Code 
+**Visual Studio Code** 
 
 Use the built in terminal and run the following command:
 
