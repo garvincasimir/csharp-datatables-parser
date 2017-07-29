@@ -90,6 +90,7 @@ namespace DataTablesParser
                 ApplySort();
             }
 
+
             IEnumerable<T> resultQuery;
             var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]);
             //Use query expression to return filtered paged list
@@ -245,8 +246,9 @@ namespace DataTablesParser
                     }
 
                     var propExp = Expression.Property(paramExpression, property);
+                    var toLower = Expression.Call(propExp,typeof(string).GetMethod("ToLower", new Type[0]));
   
-                    searchProps.Add(Expression.Call(propExp, typeof(string).GetMethod("Contains"), searchExpression));
+                    searchProps.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains"), searchExpression));
 
                 }
   
