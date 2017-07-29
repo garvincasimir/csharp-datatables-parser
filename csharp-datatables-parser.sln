@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{143602A2-DF5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatatablesParser", "src\DatatablesParser\DatatablesParser.csproj", "{110C8B7F-5098-49C5-A51D-2E34F67D7BDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspnet-core-sample", "src\aspnet-core-sample\aspnet-core-sample.csproj", "{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,9 +50,22 @@ Global
 		{110C8B7F-5098-49C5-A51D-2E34F67D7BDF}.Release|x64.Build.0 = Release|x64
 		{110C8B7F-5098-49C5-A51D-2E34F67D7BDF}.Release|x86.ActiveCfg = Release|x86
 		{110C8B7F-5098-49C5-A51D-2E34F67D7BDF}.Release|x86.Build.0 = Release|x86
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|x64.ActiveCfg = Debug|x64
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|x64.Build.0 = Debug|x64
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|x86.ActiveCfg = Debug|x86
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Debug|x86.Build.0 = Debug|x86
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|x64.ActiveCfg = Release|x64
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|x64.Build.0 = Release|x64
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|x86.ActiveCfg = Release|x86
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9C1BC2C4-6595-494C-9261-E7D4B2B97032} = {EB0E12E9-C989-4F73-868E-5E5FEA1F747B}
 		{110C8B7F-5098-49C5-A51D-2E34F67D7BDF} = {143602A2-DF53-479F-84C4-35B33F4353AA}
+		{A1BE24AA-4276-4EB1-96E7-FD496C336D9F} = {143602A2-DF53-479F-84C4-35B33F4353AA}
 	EndGlobalSection
 EndGlobal

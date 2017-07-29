@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["title"] = "People Table";
+}
+
+<h2>Index</h2>
+<table class="table table-bordered " id="PeopleListTable"></table>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            var peopleList = $('#PeopleListTable').DataTable({
+                serverSide: true,
+                processing: true,
+
+                ajax: {
+                    url: '@Url.Action("Data", "Home")',
+                    type: "POST"
+                },
+                columns: [
+                    { data: "FirstName", title: "First Name" },
+                    { data: "LastName", title: "Last Name" },
+                    { data: "BirthDateFormatted", title: "Birth Date", orderData: 3 }, //Allow post TSQL server side processing
+                    { data: "BirthDate", visible: false },
+                    { data: "Weight", title: "Weight" },
+                    { data: "Height", title: "Height" },
+                    { data: "Children", title: "Children" }
+
+                ]
+            });
+        });
+    </script>
+
+
+}
