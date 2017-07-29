@@ -14,20 +14,16 @@ namespace DataTablesParser
         private readonly Dictionary<string,string> _config;
         private readonly Type _type;
         private IDictionary<int, PropertyMapping> _propertyMap ;
+
+        //Global configs
+        private int _take;
+        private int _skip;
+        private bool _sortDisabled = false;
+
     
         private Type[] _translatable = 
         { 
-            typeof(string), 
-            typeof(int), 
-            typeof(Nullable<int>), 
-            typeof(decimal), 
-            typeof(Nullable<decimal>),
-            typeof(float),
-            typeof(Nullable<float>),
-            typeof(DateTime), 
-            typeof(Nullable<DateTime>),
-            typeof(long),
-            typeof(Nullable<long>)
+            typeof(string)
             
         };
 
@@ -58,6 +54,24 @@ namespace DataTablesParser
                                      Orderable = orderable
                                  }
                              }).Distinct().ToDictionary(k => k.index, v => v.map);
+
+                                        
+            if(_config.ContainsKey(Constants.DISPLAY_START))
+            {
+                int.TryParse(_config[Constants.DISPLAY_START], out _skip);
+            }
+
+            
+            if(_config.ContainsKey(Constants.DISPLAY_LENGTH))
+            {
+                int.TryParse(_config[Constants.DISPLAY_LENGTH], out _take);
+            }
+            else
+            {
+                _take = 10;
+            }
+
+            _sortDisabled = _config.ContainsKey(Constants.ORDERING_ENABLED) && _config[Constants.ORDERING_ENABLED] == "false";
         }
 
         public FormatedList<T> Parse()
@@ -70,60 +84,49 @@ namespace DataTablesParser
             // count the record BEFORE filtering
             list.recordsTotal =  _queriable.Count();
 
-            ApplySort();
-
-
-            int skip = 0, take = 10;
-            if(_config.ContainsKey(Constants.DISPLAY_START))
+            //sort results if sorting isn't disabled or skip needs to be called
+            if(!_sortDisabled || _skip > 0)
             {
-                int.TryParse(_config[Constants.DISPLAY_START], out skip);
+                ApplySort();
             }
 
-            if(_config.ContainsKey(Constants.DISPLAY_LENGTH))
-            {
-                int.TryParse(_config[Constants.DISPLAY_LENGTH], out take);
+            IEnumerable<T> resultQuery;
+            var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]);
+            //Use query expression to return filtered paged list
+            //This is a best effort to avoid client evaluation whenever possible
+            //No good api to determine support for .ToString() on a type
+            if(_queriable.Provider is System.Linq.EnumerableQuery && hasFilterText)
+            {     
+                 resultQuery = _queriable.Where(EnumerablFilter)
+                            .Skip(_skip)
+                            .Take(_take);
+
+                list.recordsFiltered =  _queriable.Count(EnumerablFilter);
             }
-            //This needs to be an expression or else it won't limit results
-            Func<T, bool> GenericFind = delegate(T item)
+            else if(hasFilterText)
             {
-                bool found = false;
+                var entityFilter = GenerateEntityFilter();
+                resultQuery = _queriable.Where(entityFilter)
+                            .Skip(_skip)
+                            .Take(_take);
+                            
+                list.recordsFiltered =  _queriable.Count(entityFilter);           
+            }
+            else
+            {
+                resultQuery = _queriable
+                            .Skip(_skip)
+                            .Take(_take);
+                            
+                list.recordsFiltered =  list.recordsTotal;
 
-                if(!_config.ContainsKey(Constants.SEARCH_KEY) || string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]))
-                {
-                    return true;
-                }
-
-                var sSearch = _config[Constants.SEARCH_KEY]; 
-
-
-                foreach (var map in _propertyMap)
-                {
-
-                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((sSearch).ToLower()))
-                    {
-                        found = true;
-                    }
-                }
-                return found;
-
-            };
-
-
-                // setup the data with individual property search, all fields search,
-                // paging, and property list selection
-            var resultQuery = _queriable.Where(GenericFind)
-                            .Skip(skip)
-                            .Take(take);
+            }
+            
 
             list.data = resultQuery
                             .ToList();
 
             list.SetQuery(resultQuery.ToString());
-
-
-                // total records that are displayed after filter
-            list.recordsFiltered = _config.ContainsKey(Constants.SEARCH_KEY) && string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY])? list.recordsTotal : _queriable.Count(GenericFind);
-        
 
             return list;
         }
@@ -182,7 +185,7 @@ namespace DataTablesParser
 
 			//Linq to entities needs a sort to implement skip
             //Not sure if we care about the queriables that come in sorted? IOrderedQueryable does not seem to be a reliable test
-            if (!sorted)
+            if (!sorted )
             {
                 var firstProp = Expression.Property(paramExpr, _propertyMap.First().Value.Property);
                 var propType = _propertyMap.First().Value.Property.PropertyType;
@@ -200,6 +203,69 @@ namespace DataTablesParser
             }
 
         }
+
+
+        private bool EnumerablFilter(T item)
+        {
+                bool found = false;
+
+                var sSearch = _config[Constants.SEARCH_KEY]; 
+               
+                foreach (var map in _propertyMap)
+                {
+
+                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((sSearch).ToLower()))
+                    {
+                        found = true;
+                    }
+                }
+                return found;
+        }
+
+        /// <summary>
+        /// Expression for an all column search, which will filter the result based on this criterion
+        /// </summary>
+        private Expression<Func<T, bool>> GenerateEntityFilter()
+        {
+
+                string search = _config[Constants.SEARCH_KEY];
+
+                // invariant expressions
+                var searchExpression = Expression.Constant(search.ToLower());
+                var paramExpression = Expression.Parameter(typeof(T), "val");
+                List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
+
+                foreach (var propMap in _propertyMap)
+                {
+                    var property = propMap.Value.Property;
+
+                    if (!property.CanWrite || !propMap.Value.Searchable || !_translatable.Any(t => t == property.PropertyType) ) 
+                    {
+                        continue; 
+                    }
+
+                    var propExp = Expression.Property(paramExpression, property);
+  
+                    searchProps.Add(Expression.Call(propExp, typeof(string).GetMethod("Contains"), searchExpression));
+
+                }
+  
+                var propertyQuery = searchProps.ToArray();
+                // we now need to compound the expression by starting with the first
+                // expression and build through the iterator
+                Expression compoundExpression = propertyQuery[0];
+               
+                // add the other expressions
+                for (int i = 1; i < propertyQuery.Length; i++)
+                {
+                    compoundExpression = Expression.Or(compoundExpression, propertyQuery[i]);
+                }
+
+                // compile the expression into a lambda 
+                return Expression.Lambda<Func<T, bool>>(compoundExpression, paramExpression);
+            
+        }
+
 
 
         private class PropertyMapping
@@ -252,6 +318,7 @@ namespace DataTablesParser
         public const string SEARCH_REGEX_PROPERTY_FORMAT = "columns[{0}][search][regex]";
         public const string ORDER_COLUMN_FORMAT = "order[{0}][column]";
         public const string ORDER_DIRECTION_FORMAT = "order[{0}][dir]";
+        public const string ORDERING_ENABLED = "ordering";
 
         public static string GetKey(string format,string index)
         {
