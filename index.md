@@ -1,24 +1,27 @@
 C# datatables parser
 ========================
 
-A C# Serverside parser for the popuplar [jQuery datatables plugin](http://www.datatables.net) originally released by [Zack Owens](http://weblogs.asp.net/zowens/archive/2010/01/19/jquery-datatables-plugin-meets-c.aspx).
+A C# .Net Core Serverside parser for the popuplar [jQuery datatables plugin](http://www.datatables.net) 
 
-The version in this repo features many changes and improvements from the original. 
-The most significant change is the shift to returning an array of objects instead of a two dimensional array. 
-This allows for binding to the actual object property names instead of array indexes. It also supports string filtering on dates and numberic fields in linq to entities without retrieving the entire list. The project was created in visual studio 2012 and requires .net framework 4.5 to be installed.
 
-This project is provided under the MIT License.
+Supported Platforms
+==========================
+The parser aims to be Database and Provider agnostic. It currently targets Netstandard 1.3. The solution includes tests for:
+* Entity Framework Core
+  * In Memory
+  * MySql 
+  * Sql Server 
 
 jQuery Datatables
 ========================
 
 The jQuery Datatables plugin is a very powerful javascript grid plugin which comes with the following features out of the box:
 
-* filtering
-* sorting
-* paging
-* jqQuery ui themeroller support
-* plugins  
+* Filtering
+* Sorting
+* Paging
+* Themes
+* Plugins  
 * Ajax/Remote and local datasource support
 
 Using the Parser
@@ -26,38 +29,124 @@ Using the Parser
 
 Please see the [official datatables documentation](http://datatables.net/release-datatables/examples/data_sources/server_side.html) for examples on setting it up to connect to a serverside datasource.
 
-Here is a sample asp.net mvc action which uses the parser
+The following snippets were taken from the aspnet-core-sample project also located in this repository
 
-            public JsonResult DocumentList()
-            {
-            	var context = new DocumentsEntities(); //Entity framework context
-                IQueriable<Document> documents = context.Documents.where(d => d.IsActive);
+**HomeController.cs**
 
-            	var parser = new DataTablesParser<Document>(Request, documents);
-            	return Json(parser.Parse());
-             }
+    public class HomeController : Controller
+    {
+        private readonly PersonContext _context;
 
+        public HomeController(PersonContext context)
+        {
+            _context = context;
+        }
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Data()
+        {
+            var parser = new Parser<Person>(Request.Form, _context.People);
+
+            return Json(parser.Parse());
+        }
+    }
+
+**Startup.cs**
+
+        public IServiceProvider ConfigureServices(IServiceCollection services)
+        {
+        
+            services.AddDbContext<PersonContext>(options => options.UseInMemoryDatabase("aspnet-core-websample"));
+
+            services.AddMvc()
+                    .AddJsonOptions(options =>
+                    {
+                        options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                    });
+                    
+            return services.BuildServiceProvider();
+        }
+
+**Index.cshtml**
+
+        @{
+            ViewData["title"] = "People Table";
+        }
+
+        <h2>Index</h2>
+        <table class="table table-bordered " id="PeopleListTable"></table>
+
+        @section Scripts
+        {
+            <script type="text/javascript">
+                $(function () {
+                    var peopleList = $('#PeopleListTable').DataTable({
+                        serverSide: true,
+                        processing: true,
+
+                        ajax: {
+                            url: '@Url.Action("Data", "Home")',
+                            type: "POST"
+                        },
+                        columns: [
+                            { data: "FirstName", title: "First Name" },
+                            { data: "LastName", title: "Last Name" },
+                            { data: "BirthDateFormatted", title: "Birth Date", orderData: 3 }, //Allow post TSQL server side processing
+                            { data: "BirthDate", visible: false },
+                            { data: "Weight", title: "Weight" },
+                            { data: "Height", title: "Height" },
+                            { data: "Children", title: "Children" }
+
+                        ]
+                    });
+                });
+            </script>
+
+
+        }
+
+The included Dockerfile builds, packages and runs the web sample project in a docker image. No tools, frameworks or runtimes are required on the host machine. The image has been published to docker for your convenience.  
+
+    docker run -p 80:80 garvincasimir/datatables-aspnet-core-sample:0.0.2      
 
 Installation
 ========================
  
- The easiest way to get this library into your project is through NuGet. You can search using the NuGet package manager, or you
- can enter the following command in your package manager console:
+**Visual Studio**
+
+You can search using the NuGet package manager, or you
+can enter the following command in your package manager console:
  
-            PM> Install-Package DataTablesParser              
+    PM> Install-Package DatatablesParser-core      
+
+**Visual Studio Code** 
+
+Use the built in terminal and run the following command:
+
+    dotnet add package DatatablesParser-core 
+
+
+Testing
+=========================
+This solution is configured to run tests using xunit. However, the MySql and Sql Server entity tests require a running server. You can use the included db.yaml docker compose file to quickly provision  test db servers.
+
+    docker-compose -f db.yaml up -d --force-recreate
+    # Wait for containers to initialize then run tests 
+    dotnet test   
 
 Contributions, comments, changes, issues
 ========================
 
-I welcome any suggestions for improvement, contributions, questions or issues with using this code. 
-It is the result of continuous changes to deal with issues encountered while using it so I am sure there are some things that can be 
-optimized or removed altogether. One of the biggest things this has forced me to deal with is the differences between LINQ to entites and LINQ to Objects.
+I welcome any suggestions for improvement, contributions, questions or issues with using this code.
 
 * Please do not include multiple unrelated fixes in a single pull request
 * The diff for your pull request should only show changes related to your fix/addition (Some editors create unnecessary changes).
 * When possible include tests that cover the features/changes in your pull request
 * Before you submit make sure the existing tests pass with your changes
-* Linq to Entities tests which include search parameters will fail because I use Sql Server CE (Will fix that).
+* Also, issues that are accompanied by failing tests will probably get handleded quicker
 
 Contact 
 ========================
