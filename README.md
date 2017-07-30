@@ -108,6 +108,10 @@ The following snippets were taken from the aspnet-core-sample project also locat
 
         }
 
+The included Dockerfile builds, packages and runs the web sample project in a docker image. No tools, frameworks or runtimes are required on the host machine. The image has been published to docker for your convenience.  
+
+    docker run -p 80:80 garvincasimir/datatables-aspnet-core-sample:0.0.2      
+
 Installation
 ========================
  
