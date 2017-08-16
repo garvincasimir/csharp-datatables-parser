@@ -108,7 +108,7 @@ The following snippets were taken from the aspnet-core-sample project also locat
 
         }
 
-The included Dockerfile builds, packages and runs the web sample project in a docker image. No tools, frameworks or runtimes are required on the host machine. The image has been published to docker for your convenience.  
+The included Dockerfile-websample builds, packages and runs the web sample project in a docker image. No tools, frameworks or runtimes are required on the host machine. The image has been published to docker for your convenience.  
 
     docker run -p 80:80 garvincasimir/datatables-aspnet-core-sample:0.0.2      
 
@@ -131,11 +131,9 @@ Use the built in terminal and run the following command:
 
 Testing
 =========================
-This solution is configured to run tests using xunit. However, the MySql and Sql Server entity tests require a running server. You can use the included db.yaml docker compose file to quickly provision  test db servers.
+This solution is configured to run tests using xunit. However, the MySql and Sql Server entity tests require a running server. You can use the included docker-compose-test.yaml to run all the unit and integration tests.
 
-    docker-compose -f db.yaml up -d --force-recreate
-    # Wait for containers to initialize then run tests 
-    dotnet test   
+   docker-compose -f docker-compose-test.yaml up --force-recreate --build test-runner 
 
 Contributions, comments, changes, issues
 ========================

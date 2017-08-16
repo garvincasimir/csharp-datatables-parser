@@ -1,11 +1,16 @@
 version: '2'
  
 services:
+  test-runner:
+    build: 
+      context: .
+      dockerfile: Dockerfile-test
+    depends_on:
+      - mysql
+      - mssql
   mysql:
     image: mysql
     container_name: dotnet-test-mysql
-    ports:
-      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: "Rea11ytrong_3"
       MYSQL_USER: "tester"
@@ -15,8 +20,6 @@ services:
   mssql:
     image: microsoft/mssql-server-linux
     container_name: dotnet-test-mssql
-    ports:
-      - 1433:1433
     environment:
       ACCEPT_EULA: "Y"   
       SA_PASSWORD: "Rea11ytrong_3"

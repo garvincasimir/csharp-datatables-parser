@@ -173,7 +173,7 @@ namespace DataTablesParser.Tests
                 .BuildServiceProvider();
             
             var builder = new DbContextOptionsBuilder<PersonContext>();
-                builder.UseMySQL(@"server=localhost;database=dotnettest;user=tester;password=Rea11ytrong_3")
+                builder.UseMySQL(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
                     .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
@@ -197,7 +197,7 @@ namespace DataTablesParser.Tests
                 .BuildServiceProvider();
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
-            builder.UseSqlServer(@"Data Source=localhost;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
+            builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
                    .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
