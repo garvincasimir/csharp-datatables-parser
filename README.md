@@ -135,7 +135,7 @@ Testing
 =========================
 This solution is configured to run tests using xunit. However, the MySql and Sql Server entity tests require a running server. You can use the included docker-compose-test.yaml to run all the unit and integration tests.
 
-   docker-compose -f docker-compose-test.yaml up --force-recreate --build test-runner 
+   docker-compose -f docker-compose-test.yaml up --force-recreate --exit-code-from test-runner --build test-runner
 
 Contributions, comments, changes, issues
 ========================
