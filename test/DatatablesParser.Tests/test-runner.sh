@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "Restore and build while db servers are starting"
 dotnet restore
 dotnet build
 echo "Waiting for test db servers"
