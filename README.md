@@ -4,6 +4,7 @@ C# datatables parser
 
 A C# .Net Core Serverside parser for the popuplar [jQuery datatables plugin](http://www.datatables.net) 
 
+![Screenshot](screenshot.png)
 
 Supported Platforms
 ==========================
