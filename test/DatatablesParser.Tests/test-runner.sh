@@ -6,7 +6,7 @@ dotnet restore
 dotnet build
 echo "Testing connections to test db servers"
 while ! ( nc -w 1 mssql 1433 &> /dev/null && nc -w 1 mysql 3306 &> /dev/null ) ; do 
-    sleep 1; 
+    sleep 3; 
     echo "Test db servers not ready. Trying again"
 done
 echo "Test DB Servers started"
