@@ -1,5 +1,6 @@
 C# datatables parser
 ========================
+![Build Status](https://travis-ci.org/garvincasimir/csharp-datatables-parser.svg?branch=master)
 
 A C# .Net Core Serverside parser for the popuplar [jQuery datatables plugin](http://www.datatables.net) 
 
