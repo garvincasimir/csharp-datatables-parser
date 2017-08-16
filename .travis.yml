@@ -1,0 +1,9 @@
+sudo: required
+
+language: c
+
+services:
+  - docker
+
+script:
+- docker-compose -f docker-compose-test.yaml up --force-recreate --build test-runner 

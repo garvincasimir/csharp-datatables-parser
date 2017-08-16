@@ -1,6 +1,13 @@
 version: '2'
  
 services:
+  test-runner:
+    build: 
+      context: .
+      dockerfile: Dockerfile-test
+    depends_on:
+      - mysql
+      - mssql
   mysql:
     image: mysql
     container_name: dotnet-test-mysql

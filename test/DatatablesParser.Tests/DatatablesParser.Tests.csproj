@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp1.1.2</TargetFramework>
     <AssemblyName>DatatablesParser.Tests</AssemblyName>
     <PackageId>DatatablesParser.Tests</PackageId>
   </PropertyGroup>
