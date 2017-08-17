@@ -30,5 +30,3 @@ services:
       POSTGRES_PASSWORD: "Rea11ytrong_3"
       POSTGRES_USER: "tester"
       POSTGRES_DB: "dotnettest"
-    ports:
-      - 5432:5432
