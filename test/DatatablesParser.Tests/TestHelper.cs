@@ -173,7 +173,6 @@ namespace DataTablesParser.Tests
                 .AddEntityFrameworkMySql()
                 .BuildServiceProvider();
                 
-
             var lf = serviceProvider.GetService<ILoggerFactory>();
             lf.AddProvider(new EFlogger());
 
@@ -200,6 +199,9 @@ namespace DataTablesParser.Tests
                 .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
             
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
+
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
                     .UseInternalServiceProvider(serviceProvider);
@@ -223,6 +225,9 @@ namespace DataTablesParser.Tests
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkSqlServer()
                 .BuildServiceProvider();
+
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
