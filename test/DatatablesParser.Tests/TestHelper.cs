@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Microsoft.Extensions.Logging;
 
 namespace DataTablesParser.Tests
 {
@@ -167,15 +168,19 @@ namespace DataTablesParser.Tests
 
         public static PersonContext GetMysqlContext()
         {
-
+           
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkMySql()
                 .BuildServiceProvider();
-            
+                
+
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
+
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
                     .UseInternalServiceProvider(serviceProvider);
-
+                  
             var context = new PersonContext(builder.Options);
 
             context.Database.EnsureCreated();
