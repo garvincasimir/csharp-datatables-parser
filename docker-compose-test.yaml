@@ -8,6 +8,7 @@ services:
     depends_on:
       - mysql
       - mssql
+      - pgsql
   mysql:
     image: mysql
     container_name: dotnet-test-mysql
@@ -23,3 +24,11 @@ services:
     environment:
       ACCEPT_EULA: "Y"   
       SA_PASSWORD: "Rea11ytrong_3"
+  pgsql:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "Rea11ytrong_3"
+      POSTGRES_USER: "tester"
+      POSTGRES_DB: "dotnettest"
+    ports:
+      - 5432:5432

@@ -5,8 +5,8 @@ using Microsoft.Extensions.Primitives;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using MySQL.Data.EntityFrameworkCore.Extensions;
-using MySQL.Data.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace DataTablesParser.Tests
 {
@@ -154,7 +154,7 @@ namespace DataTablesParser.Tests
                 .BuildServiceProvider();
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
-            builder.UseInMemoryDatabase()
+            builder.UseInMemoryDatabase("testdb")
                    .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
@@ -169,17 +169,40 @@ namespace DataTablesParser.Tests
         {
 
            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkMySQL()
+                .AddEntityFrameworkMySql()
                 .BuildServiceProvider();
             
             var builder = new DbContextOptionsBuilder<PersonContext>();
-                builder.UseMySQL(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
+                builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
                     .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
 
             context.Database.EnsureCreated();
             context.Database.ExecuteSqlCommand("truncate table People;");
+            
+            context.People.AddRange(CreateData());
+            context.SaveChanges();
+            
+            return context;
+
+        }
+
+        public static PersonContext GetPgsqlContext()
+        {
+
+           var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
+                .BuildServiceProvider();
+            
+            var builder = new DbContextOptionsBuilder<PersonContext>();
+                builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
+                    .UseInternalServiceProvider(serviceProvider);
+
+            var context = new PersonContext(builder.Options);
+
+            context.Database.EnsureCreated();
+            context.Database.ExecuteSqlCommand("truncate table public.\"People\";");
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
