@@ -6,5 +6,9 @@ language: c
 services:
   - docker
 
+before_install:
+  - sudo /etc/init.d/mysql stop
+  - sudo /etc/init.d/postgresql stop
+
 script:
 - docker-compose -f docker-compose-test.yaml up --force-recreate --exit-code-from test-runner --build test-runner 
