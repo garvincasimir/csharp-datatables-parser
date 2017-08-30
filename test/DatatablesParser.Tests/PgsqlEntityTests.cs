@@ -7,19 +7,19 @@ using Microsoft.Extensions.Primitives;
 namespace DataTablesParser.Tests
 {
   
-    public class LinqToObjectTests
+    public class PgsqlEntityTests
     {
-        
+
         [Fact]
         public void TotalRecordsTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetPgsqlContext();
 
             var p = TestHelper.CreateParams();
 
             var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("InMemory - Total People TotalRecordsTest: {0}",context.People.Count());
+            Console.WriteLine("Pgsql - Total People TotalRecordsTest: {0}",context.People.Count());
 
             Assert.Equal(context.People.Count(),parser.Parse().recordsTotal);
 
@@ -28,7 +28,7 @@ namespace DataTablesParser.Tests
         [Fact]
         public void TotalResultsTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetPgsqlContext();
 
             var p = TestHelper.CreateParams();
 
@@ -39,7 +39,7 @@ namespace DataTablesParser.Tests
 
             var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("InMemory - Total People TotalResultsTest: {0}",context.People.Count());
+            Console.WriteLine("Pgsql - Total People TotalResultsTest: {0}",context.People.Count());
 
             Assert.Equal(resultLength, parser.Parse().data.Count);
 
@@ -48,7 +48,7 @@ namespace DataTablesParser.Tests
         [Fact]
         public void TotalDisplayTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetPgsqlContext();
             var p = TestHelper.CreateParams();
             var displayLength = 1;
 
@@ -56,9 +56,9 @@ namespace DataTablesParser.Tests
             //Set filter parameter
             p[Constants.SEARCH_KEY] = new StringValues("Cromie");
 
-            var parser = new Parser<Person>(p, context.People.ToList().AsQueryable());
+            var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("InMemory - Total People TotalDisplayTest: {0}",context.People.Count());
+            Console.WriteLine("Pgsql - Total People TotalDisplayTest: {0}",context.People.Count());
 
             Assert.Equal(displayLength, parser.Parse().recordsFiltered);
 

@@ -19,7 +19,7 @@ namespace DataTablesParser.Tests
 
             var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("Total People TotalRecordsTest: {0}",context.People.Count());
+            Console.WriteLine("Mysql - Total People TotalRecordsTest: {0}",context.People.Count());
 
             Assert.Equal(context.People.Count(),parser.Parse().recordsTotal);
 
@@ -39,7 +39,7 @@ namespace DataTablesParser.Tests
 
             var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("Total People TotalResultsTest: {0}",context.People.Count());
+            Console.WriteLine("Mysql - Total People TotalResultsTest: {0}",context.People.Count());
 
             Assert.Equal(resultLength, parser.Parse().data.Count);
 
@@ -58,7 +58,7 @@ namespace DataTablesParser.Tests
 
             var parser = new Parser<Person>(p, context.People.AsQueryable());
 
-            Console.WriteLine("Total People TotalDisplayTest: {0}",context.People.Count());
+            Console.WriteLine("Mysql - Total People TotalDisplayTest: {0}",context.People.Count());
 
             Assert.Equal(displayLength, parser.Parse().recordsFiltered);
 

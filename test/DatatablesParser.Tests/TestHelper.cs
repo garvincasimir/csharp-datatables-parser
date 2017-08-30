@@ -5,8 +5,9 @@ using Microsoft.Extensions.Primitives;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using MySQL.Data.EntityFrameworkCore.Extensions;
-using MySQL.Data.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Microsoft.Extensions.Logging;
 
 namespace DataTablesParser.Tests
 {
@@ -154,7 +155,7 @@ namespace DataTablesParser.Tests
                 .BuildServiceProvider();
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
-            builder.UseInMemoryDatabase()
+            builder.UseInMemoryDatabase("testdb")
                    .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
@@ -167,19 +168,48 @@ namespace DataTablesParser.Tests
 
         public static PersonContext GetMysqlContext()
         {
+           
+           var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkMySql()
+                .BuildServiceProvider();
+                
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
+
+            var builder = new DbContextOptionsBuilder<PersonContext>();
+                builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
+                    .UseInternalServiceProvider(serviceProvider);
+                  
+            var context = new PersonContext(builder.Options);
+
+            context.Database.EnsureCreated();
+            context.Database.ExecuteSqlCommand("truncate table People;");
+            
+            context.People.AddRange(CreateData());
+            context.SaveChanges();
+            
+            return context;
+
+        }
+
+        public static PersonContext GetPgsqlContext()
+        {
 
            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkMySQL()
+                .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
             
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
+
             var builder = new DbContextOptionsBuilder<PersonContext>();
-                builder.UseMySQL(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
+                builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
                     .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
 
             context.Database.EnsureCreated();
-            context.Database.ExecuteSqlCommand("truncate table People;");
+            context.Database.ExecuteSqlCommand("truncate table public.\"People\";");
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
@@ -195,6 +225,9 @@ namespace DataTablesParser.Tests
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkSqlServer()
                 .BuildServiceProvider();
+
+            var lf = serviceProvider.GetService<ILoggerFactory>();
+            lf.AddProvider(new EFlogger());
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")

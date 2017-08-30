@@ -21,10 +21,18 @@ namespace DataTablesParser
         private bool _sortDisabled = false;
 
     
-        private Type[] _translatable = 
+        private Type[] _convertable = 
         { 
-            typeof(string)
-            
+            typeof(int), 
+            typeof(Nullable<int>), 
+            typeof(decimal), 
+            typeof(Nullable<decimal>),
+            typeof(float),
+            typeof(Nullable<float>),
+            typeof(double),
+            typeof(Nullable<double>),
+            typeof(DateTime), 
+            typeof(Nullable<DateTime>) 
         };
 
         public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> queriable)
@@ -239,14 +247,23 @@ namespace DataTablesParser
                 foreach (var propMap in _propertyMap)
                 {
                     var property = propMap.Value.Property;
-
-                    if (!property.CanWrite || !propMap.Value.Searchable || !_translatable.Any(t => t == property.PropertyType) ) 
+                    var isString = property.PropertyType == typeof(string);
+                    if (!property.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == property.PropertyType) && !isString ) ) 
                     {
                         continue; 
                     }
+                    
+                    Expression propExp = Expression.Property(paramExpression, property);
+                   
+                    if (!isString)
+                    {
+                        var toString = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
 
-                    var propExp = Expression.Property(paramExpression, property);
-                    var toLower = Expression.Call(propExp,typeof(string).GetMethod("ToLower", new Type[0]));
+                        propExp = Expression.Call(propExp, toString);
+
+                    }
+                    
+                    var toLower = Expression.Call(propExp,typeof(string).GetMethod("ToLower", Type.EmptyTypes));
   
                     searchProps.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains"), searchExpression));
 
@@ -278,6 +295,8 @@ namespace DataTablesParser
             public string Regex { get; set; } //Not yet implemented
             public string SearchInput { get; set; } //Not yet implemented
         }
+
+        
 
     }
     public class FormatedList<T>
