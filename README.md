@@ -93,6 +93,7 @@ The following snippets were taken from the aspnet-core-sample project also locat
                             url: '@Url.Action("Data", "Home")',
                             type: "POST"
                         },
+                        rowId:'Id',
                         columns: [
                             { data: "FirstName", title: "First Name" },
                             { data: "LastName", title: "Last Name" },
