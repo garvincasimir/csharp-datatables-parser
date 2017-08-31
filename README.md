@@ -12,7 +12,8 @@ The parser aims to be Database and Provider agnostic. It currently targets Netst
 * Entity Framework Core
   * In Memory
   * MySql 
-  * Sql Server 
+  * Sql Server
+  * PostgreSQL
 
 jQuery Datatables
 ========================
