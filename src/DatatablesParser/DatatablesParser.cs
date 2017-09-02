@@ -10,10 +10,10 @@ namespace DataTablesParser
 {
     public class Parser<T> where T : class
     {
-        private IQueryable<T> _queriable;
+        private IQueryable<T> _queryable;
         private readonly Dictionary<string,string> _config;
         private readonly Type _type;
-        private IDictionary<int, PropertyMapping> _propertyMap ;
+        private IDictionary<int, PropertyMap> _propertyMap ;
 
         //Global configs
         private int _take;
@@ -35,9 +35,9 @@ namespace DataTablesParser
             typeof(Nullable<DateTime>) 
         };
 
-        public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> queriable)
+        public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> queryable)
         {
-            _queriable = queriable;
+            _queryable = queryable;
             _config = configParams.ToDictionary(k => k.Key,v=> v.Value.First().Trim());
             _type = typeof(T);
             
@@ -55,7 +55,7 @@ namespace DataTablesParser
                              select new
                              {
                                  index = int.Parse(index),
-                                 map = new PropertyMapping
+                                 map = new PropertyMap
                                  {
                                      Property = prop,
                                      Searchable = searchable,
@@ -82,15 +82,15 @@ namespace DataTablesParser
             _sortDisabled = _config.ContainsKey(Constants.ORDERING_ENABLED) && _config[Constants.ORDERING_ENABLED] == "false";
         }
 
-        public FormatedList<T> Parse()
+        public Results<T> Parse()
         {
-            var list = new FormatedList<T>();
+            var list = new Results<T>();
 
-            // parse the echo property (must be returned as int to prevent XSS-attack)
+            // parse the echo property
             list.draw = int.Parse(_config[Constants.DRAW]);
 
             // count the record BEFORE filtering
-            list.recordsTotal =  _queriable.Count();
+            list.recordsTotal =  _queryable.Count();
 
             //sort results if sorting isn't disabled or skip needs to be called
             if(!_sortDisabled || _skip > 0)
@@ -104,26 +104,26 @@ namespace DataTablesParser
             //Use query expression to return filtered paged list
             //This is a best effort to avoid client evaluation whenever possible
             //No good api to determine support for .ToString() on a type
-            if(_queriable.Provider is System.Linq.EnumerableQuery && hasFilterText)
+            if(_queryable.Provider is System.Linq.EnumerableQuery && hasFilterText)
             {     
-                 resultQuery = _queriable.Where(EnumerablFilter)
+                 resultQuery = _queryable.Where(EnumerablFilter)
                             .Skip(_skip)
                             .Take(_take);
 
-                list.recordsFiltered =  _queriable.Count(EnumerablFilter);
+                list.recordsFiltered =  _queryable.Count(EnumerablFilter);
             }
             else if(hasFilterText)
             {
                 var entityFilter = GenerateEntityFilter();
-                resultQuery = _queriable.Where(entityFilter)
+                resultQuery = _queryable.Where(entityFilter)
                             .Skip(_skip)
                             .Take(_take);
                             
-                list.recordsFiltered =  _queriable.Count(entityFilter);           
+                list.recordsFiltered =  _queryable.Count(entityFilter);           
             }
             else
             {
-                resultQuery = _queriable
+                resultQuery = _queryable
                             .Skip(_skip)
                             .Take(_take);
                             
@@ -132,10 +132,7 @@ namespace DataTablesParser
             }
             
 
-            list.data = resultQuery
-                            .ToList();
-
-            list.SetQuery(resultQuery.ToString());
+            list.data = resultQuery.ToList();
 
             return list;
         }
@@ -143,7 +140,7 @@ namespace DataTablesParser
         private void ApplySort()
         {
             var sorted = false;
-            var paramExpr = Expression.Parameter(typeof(T), "val");
+            var paramExpr = Expression.Parameter(_type, "val");
 
             // Enumerate the keys sort keys in the order we received them
             foreach (var param in _config.Where(k => Regex.IsMatch(k.Key, Constants.ORDER_PATTERN)))
@@ -167,7 +164,7 @@ namespace DataTablesParser
                 var sortProperty = _propertyMap[sortcolumn].Property;
                 var expression1 = Expression.Property(paramExpr, sortProperty);
                 var propType = sortProperty.PropertyType;
-                var delegateType = Expression.GetFuncType(typeof(T), propType);
+                var delegateType = Expression.GetFuncType(_type, propType);
                 var propertyExpr = Expression.Lambda(delegateType, expression1, paramExpr);
                
                 // apply the sort (default is ascending if not specified)
@@ -181,13 +178,13 @@ namespace DataTablesParser
                      methodName = sorted ? "ThenByDescending" : "OrderByDescending";
                  }
 
-                _queriable = typeof(Queryable).GetMethods().Single(
+                _queryable = typeof(Queryable).GetMethods().Single(
                     method => method.Name == methodName
                                 && method.IsGenericMethodDefinition
                                 && method.GetGenericArguments().Length == 2
                                 && method.GetParameters().Length == 2)
-                        .MakeGenericMethod(typeof(T), propType)
-                        .Invoke(null, new object[] { _queriable, propertyExpr }) as IOrderedQueryable<T>;
+                        .MakeGenericMethod(_type, propType)
+                        .Invoke(null, new object[] { _queryable, propertyExpr }) as IOrderedQueryable<T>;
 
                      sorted = true;
             }
@@ -198,16 +195,16 @@ namespace DataTablesParser
             {
                 var firstProp = Expression.Property(paramExpr, _propertyMap.First().Value.Property);
                 var propType = _propertyMap.First().Value.Property.PropertyType;
-                var delegateType = Expression.GetFuncType(typeof(T), propType);
+                var delegateType = Expression.GetFuncType(_type, propType);
                 var propertyExpr = Expression.Lambda(delegateType, firstProp, paramExpr);
          
-                _queriable = typeof(Queryable).GetMethods().Single(
+                _queryable = typeof(Queryable).GetMethods().Single(
              method => method.Name == "OrderBy"
                          && method.IsGenericMethodDefinition
                          && method.GetGenericArguments().Length == 2
                          && method.GetParameters().Length == 2)
-                 .MakeGenericMethod(typeof(T), propType)
-                 .Invoke(null, new object[] { _queriable, propertyExpr }) as IOrderedQueryable<T>;
+                 .MakeGenericMethod(_type, propType)
+                 .Invoke(null, new object[] { _queryable, propertyExpr }) as IOrderedQueryable<T>;
 
             }
 
@@ -232,7 +229,7 @@ namespace DataTablesParser
         }
 
         /// <summary>
-        /// Expression for an all column search, which will filter the result based on this criterion
+        /// Generate a lamda expression based on a search filter for all mapped columns
         /// </summary>
         private Expression<Func<T, bool>> GenerateEntityFilter()
         {
@@ -241,23 +238,23 @@ namespace DataTablesParser
 
                 // invariant expressions
                 var searchExpression = Expression.Constant(search.ToLower());
-                var paramExpression = Expression.Parameter(typeof(T), "val");
+                var paramExpression = Expression.Parameter(_type, "val");
                 List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
 
                 foreach (var propMap in _propertyMap)
                 {
-                    var property = propMap.Value.Property;
-                    var isString = property.PropertyType == typeof(string);
-                    if (!property.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == property.PropertyType) && !isString ) ) 
+                    var prop = propMap.Value.Property;
+                    var isString = prop.PropertyType == typeof(string);
+                    if (!prop.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == prop.PropertyType) && !isString ) ) 
                     {
                         continue; 
                     }
                     
-                    Expression propExp = Expression.Property(paramExpression, property);
+                    Expression propExp = Expression.Property(paramExpression, prop);
                    
                     if (!isString)
                     {
-                        var toString = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
+                        var toString = prop.PropertyType.GetMethod("ToString", Type.EmptyTypes);
 
                         propExp = Expression.Call(propExp, toString);
 
@@ -280,14 +277,14 @@ namespace DataTablesParser
                     compoundExpression = Expression.Or(compoundExpression, propertyQuery[i]);
                 }
 
-                // compile the expression into a lambda 
+                // return the expression into a lambda 
                 return Expression.Lambda<Func<T, bool>>(compoundExpression, paramExpression);
             
         }
 
 
 
-        private class PropertyMapping
+        private class PropertyMap
         {
             public PropertyInfo Property { get; set; }
             public bool Orderable { get; set; }
@@ -299,20 +296,8 @@ namespace DataTablesParser
         
 
     }
-    public class FormatedList<T>
+    public class Results<T>
     {
-        private string _query;
-
-        internal void SetQuery(string query)
-        {
-            _query = query;
-        }
-
-        public string GetQuery()
-        {
-            return _query;
-        }
-
         public int draw { get; set; }
         public int recordsTotal { get; set; }
         public int recordsFiltered { get; set; }
