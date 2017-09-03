@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DataTablesParser.Tests
 {
@@ -175,10 +176,11 @@ namespace DataTablesParser.Tests
                 
             var lf = serviceProvider.GetService<ILoggerFactory>();
             lf.AddProvider(new EFlogger());
-
+            
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
-                    .UseInternalServiceProvider(serviceProvider);
+                 .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                 .UseInternalServiceProvider(serviceProvider);
                   
             var context = new PersonContext(builder.Options);
 
@@ -204,10 +206,11 @@ namespace DataTablesParser.Tests
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
+                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
                     .UseInternalServiceProvider(serviceProvider);
-
+                    
             var context = new PersonContext(builder.Options);
-
+            
             context.Database.EnsureCreated();
             context.Database.ExecuteSqlCommand("truncate table public.\"People\";");
             
@@ -231,7 +234,8 @@ namespace DataTablesParser.Tests
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
-                   .UseInternalServiceProvider(serviceProvider);
+                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                    .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
             context.Database.EnsureCreated();

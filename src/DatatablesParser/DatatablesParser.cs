@@ -20,6 +20,7 @@ namespace DataTablesParser
         private int _skip;
         private bool _sortDisabled = false;
 
+        private Dictionary<string,Expression> _converters = new Dictionary<string, Expression>();
     
         private Type[] _convertable = 
         { 
@@ -63,7 +64,12 @@ namespace DataTablesParser
                                  }
                              }).Distinct().ToDictionary(k => k.index, v => v.map);
 
-                                        
+
+            if(_propertyMap.Count == 0 )
+            {
+                throw new Exception("No properties were found in request. Please map datatable field names to properties in T");
+            }
+
             if(_config.ContainsKey(Constants.DISPLAY_START))
             {
                 int.TryParse(_config[Constants.DISPLAY_START], out _skip);
@@ -135,6 +141,28 @@ namespace DataTablesParser
             list.data = resultQuery.ToList();
 
             return list;
+        }
+
+        ///<summary>
+        /// SetConverter accepts a custom expression for converting a property in T to string. 
+        /// This will be used during filtering. 
+        ///</summary>
+        /// <param name="property">A lambda expression with a member expression as the body</param>
+        /// <param name="tostring">A lambda given T returns a string by performing a sql translatable operation on property</param>
+        public Parser<T> SetConverter(Expression<Func<T,object>> property, Expression<Func<T,string>> tostring)
+        {
+            Console.WriteLine(property.Body.NodeType);
+
+            var  memberExp =  ((UnaryExpression)property.Body).Operand as MemberExpression;
+
+            if(memberExp == null)
+            {
+                throw new ArgumentException("Body in property must be a member expression");
+            }
+
+            _converters[memberExp.Member.Name] = tostring.Body;
+           
+            return this;
         }
 
         private void ApplySort()
@@ -240,19 +268,26 @@ namespace DataTablesParser
                 var searchExpression = Expression.Constant(search.ToLower());
                 var paramExpression = Expression.Parameter(_type, "val");
                 List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
+                var modifier = new ModifyParam(paramExpression);
 
                 foreach (var propMap in _propertyMap)
                 {
                     var prop = propMap.Value.Property;
                     var isString = prop.PropertyType == typeof(string);
-                    if (!prop.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == prop.PropertyType) && !isString ) ) 
+                    var hasCustom = _converters.ContainsKey(prop.Name);
+
+                    if ((!prop.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == prop.PropertyType) && !isString )) && !hasCustom ) 
                     {
                         continue; 
                     }
                     
                     Expression propExp = Expression.Property(paramExpression, prop);
                    
-                    if (!isString)
+                    if(hasCustom)
+                    {
+                        propExp = modifier.Visit( _converters[prop.Name]);
+                    }
+                    else if (!isString)
                     {
                         var toString = prop.PropertyType.GetMethod("ToString", Type.EmptyTypes);
 
@@ -267,8 +302,9 @@ namespace DataTablesParser
                 }
   
                 var propertyQuery = searchProps.ToArray();
-                // we now need to compound the expression by starting with the first
-                // expression and build through the iterator
+                
+                //This will all be converted to a giant WHERE clause if translated to sql
+                //Add the first expression 
                 Expression compoundExpression = propertyQuery[0];
                
                 // add the other expressions
@@ -283,6 +319,22 @@ namespace DataTablesParser
         }
 
 
+
+        public class ModifyParam : ExpressionVisitor
+        {
+            private ParameterExpression _replace;
+
+            public ModifyParam(ParameterExpression p)
+            {
+                _replace = p;
+            }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                return _replace;
+            }
+
+        }
 
         private class PropertyMap
         {
