@@ -17,7 +17,7 @@ namespace DataTablesParser.Tests
 
             var p = TestHelper.CreateParams();
 
-            var parser = new Parser<Person>(p, context.People.AsQueryable());
+            var parser = new Parser<Person>(p, context.People);
 
             Console.WriteLine("Mysql - Total People TotalRecordsTest: {0}",context.People.Count());
 
@@ -37,7 +37,7 @@ namespace DataTablesParser.Tests
             //override display length
             p[Constants.DISPLAY_LENGTH] = new StringValues(Convert.ToString(resultLength)); 
 
-            var parser = new Parser<Person>(p, context.People.AsQueryable());
+            var parser = new Parser<Person>(p, context.People);
 
             Console.WriteLine("Mysql - Total People TotalResultsTest: {0}",context.People.Count());
 
@@ -56,9 +56,30 @@ namespace DataTablesParser.Tests
             //Set filter parameter
             p[Constants.SEARCH_KEY] = new StringValues("Cromie");
 
-            var parser = new Parser<Person>(p, context.People.AsQueryable());
+            var parser = new Parser<Person>(p, context.People);
 
             Console.WriteLine("Mysql - Total People TotalDisplayTest: {0}",context.People.Count());
+
+            Assert.Equal(displayLength, parser.Parse().recordsFiltered);
+
+        }
+
+        [Fact]
+        public void TotalDisplayCustomFormatTest()
+        {
+            var context = TestHelper.GetMysqlContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 1;
+
+           
+            //Set filter parameter
+            p[Constants.SEARCH_KEY] = new StringValues("09/03/1953");
+
+            var parser = new Parser<Person>(p, context.People)
+                            .SetConverter(x => x.BirthDate, x => PersonContext.Date_Format(x.BirthDate,"%m/%d/%Y"));
+                
+
+            Console.WriteLine("MySql - Total People TotalDisplayCustomFormatTest: {0}",context.People.Count());
 
             Assert.Equal(displayLength, parser.Parse().recordsFiltered);
 
