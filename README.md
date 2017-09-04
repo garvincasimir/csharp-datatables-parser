@@ -37,7 +37,7 @@ Please see the [official datatables documentation](http://datatables.net/release
 The following snippets were taken from the aspnet-core-sample project also located in this repository
 
 **HomeController.cs**
-
+```c#
     public class HomeController : Controller
     {
         private readonly PersonContext _context;
@@ -58,9 +58,9 @@ The following snippets were taken from the aspnet-core-sample project also locat
             return Json(parser.Parse());
         }
     }
-
+```
 **Startup.cs**
-
+```c#
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
         
@@ -74,9 +74,9 @@ The following snippets were taken from the aspnet-core-sample project also locat
                     
             return services.BuildServiceProvider();
         }
-
+```
 **Index.cshtml**
-
+```html
         @{
             ViewData["title"] = "People Table";
         }
@@ -113,7 +113,7 @@ The following snippets were taken from the aspnet-core-sample project also locat
 
 
         }
-
+```
 The included Dockerfile-websample builds, packages and runs the web sample project in a docker image. No tools, frameworks or runtimes are required on the host machine. The image has been published to docker for your convenience.  
 
     docker run -p 80:80 garvincasimir/datatables-aspnet-core-sample:0.0.2   
@@ -122,7 +122,7 @@ Custom Filter Expressions
 ========================
 The parser builds a set of expressions based on the settings and filter text sent from Datatables. The end result is a *WHERE* clause which looks something like this:
 
-```
+```sql
 FROM [People] AS [val]
 WHERE ((((CASE
     WHEN CHARINDEX(N'cromie', LOWER([val].[FirstName])) > 0
@@ -154,7 +154,7 @@ What is missing in the above expression is the ability to format dates to match 
 
 For example, if your provider does support *DateTime.ToString(string format)*, you can substitute .ToString() with that expression after initializing the parser. This must be explicitly called for each applicable property.
 
-```
+```c#
 var parser = new Parser<Person>(p, context.People)
                   .SetConverter(x => x.BirthDate, x => x.BirthDate.ToString("M/dd/yyyy"))
                   .SetConverter(x => x.LastUpdated, x => x.LastUpdated.ToString("M/dd/yyyy"));
@@ -165,7 +165,7 @@ var parser = new Parser<Person>(p, context.People)
 In EF Core 2 you can map user defined and system scalar valued functions and use them for formatting. The following is an example for SQL Server >= 2012. 
 
 PersonContext.cs
-```
+```c#
     using Microsoft.EntityFrameworkCore;
     using System;
 
@@ -193,7 +193,7 @@ PersonContext.cs
 ```
 Parser initialization
 
-```
+```c#
 
             var parser = new Parser<Person>(p, context.People)
                             .SetConverter(x => x.BirthDate, x => PersonContext.Format(x.BirthDate,"M/dd/yyyy"));
@@ -201,7 +201,7 @@ Parser initialization
 
 The *WHERE* clause now looks like this:
 
-```
+```sql
 WHERE ((((CASE
     WHEN CHARINDEX(N'9/03/1953', LOWER([val].[FirstName])) > 0
     THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT)
