@@ -162,7 +162,7 @@ var parser = new Parser<Person>(p, context.People)
 
 **EF Core 2**
 
-In EF Core 2 you can map user defined and system scalar valued functions and use them for formatting. The following is an example for SQL Server >= 2012. 
+Thanks to [this](https://github.com/aspnet/EntityFrameworkCore/pull/8507) pull request by [Paul Middleton](https://github.com/pmiddleton), EF Core 2 supports mapping user defined and system scalar valued functions. These functions can be used for string conversions and custom formatting. The following is an example for SQL Server >= 2012. 
 
 PersonContext.cs
 ```c#
