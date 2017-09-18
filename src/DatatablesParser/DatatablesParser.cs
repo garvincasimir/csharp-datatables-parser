@@ -51,7 +51,9 @@ namespace DataTablesParser
                              let searchable = _config.ContainsKey(searchableKey) && _config[searchableKey] == "true"
                              let orderableKey = Constants.GetKey(Constants.ORDERABLE_PROPERTY_FORMAT, index)
                              let orderable = _config.ContainsKey(orderableKey) && _config[orderableKey]== "true"
-                             // Set regex and individual search when implemented
+                             let filterKey = Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT,index)
+                             let filter = _config.ContainsKey(filterKey)?_config[filterKey]:string.Empty
+                             // Set regex when implemented
 
                              select new
                              {
@@ -60,7 +62,8 @@ namespace DataTablesParser
                                  {
                                      Property = prop,
                                      Searchable = searchable,
-                                     Orderable = orderable
+                                     Orderable = orderable,
+                                     Filter = filter
                                  }
                              }).Distinct().ToDictionary(k => k.index, v => v.map);
 
@@ -106,7 +109,7 @@ namespace DataTablesParser
 
 
             IEnumerable<T> resultQuery;
-            var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]);
+            var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]) || _propertyMap.Any( p => !string.IsNullOrWhiteSpace(p.Value.Filter));
             //Use query expression to return filtered paged list
             //This is a best effort to avoid client evaluation whenever possible
             //No good api to determine support for .ToString() on a type
@@ -243,12 +246,12 @@ namespace DataTablesParser
         {
                 bool found = false;
 
-                var sSearch = _config[Constants.SEARCH_KEY]; 
+                var filter = _config[Constants.SEARCH_KEY]; 
                
                 foreach (var map in _propertyMap)
                 {
 
-                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((sSearch).ToLower()))
+                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((filter).ToLower()))
                     {
                         found = true;
                     }
@@ -262,13 +265,19 @@ namespace DataTablesParser
         private Expression<Func<T, bool>> GenerateEntityFilter()
         {
 
-                string search = _config[Constants.SEARCH_KEY];
-
-                // invariant expressions
-                var searchExpression = Expression.Constant(search.ToLower());
                 var paramExpression = Expression.Parameter(_type, "val");
-                List<MethodCallExpression> searchProps = new List<MethodCallExpression>();
-                var modifier = new ModifyParam(paramExpression);
+
+                string filter = _config[Constants.SEARCH_KEY];
+
+                ConstantExpression globalFilterConst = null;
+                Expression filterExpr = null;
+                if(!string.IsNullOrWhiteSpace(filter))
+                {
+                    globalFilterConst = Expression.Constant(filter.ToLower());
+                }
+
+                List<MethodCallExpression> individualConditions = new List<MethodCallExpression>();
+                var modifier = new ModifyParam(paramExpression); //map user supplied converters using a visitor
 
                 foreach (var propMap in _propertyMap)
                 {
@@ -280,6 +289,12 @@ namespace DataTablesParser
                     {
                         continue; 
                     }
+
+                    ConstantExpression individualFilterConst = null;
+                    if(!string.IsNullOrWhiteSpace(propMap.Value.Filter))
+                    {
+                        individualFilterConst = Expression.Constant(propMap.Value.Filter.ToLower());
+                    } 
                     
                     Expression propExp = Expression.Property(paramExpression, prop);
                    
@@ -296,29 +311,46 @@ namespace DataTablesParser
                     }
                     
                     var toLower = Expression.Call(propExp,typeof(string).GetMethod("ToLower", Type.EmptyTypes));
-  
-                    searchProps.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains"), searchExpression));
+
+                    if(globalFilterConst!=null)
+                    {
+                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod("Contains"), globalFilterConst);
+
+                        if(filterExpr == null)
+                        {
+                            filterExpr = globalTest;
+                        }
+                        else
+                        {
+                            filterExpr = Expression.Or(filterExpr,globalTest);
+                        }
+                    }
+
+                    if(individualFilterConst!=null)
+                    {
+                        individualConditions.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains"), individualFilterConst));
+
+                    }
 
                 }
-  
-                var propertyQuery = searchProps.ToArray();
-                
-                //This will all be converted to a giant WHERE clause if translated to sql
-                //Add the first expression 
-                Expression compoundExpression = propertyQuery[0];
-               
-                // add the other expressions
-                for (int i = 1; i < propertyQuery.Length; i++)
+
+
+                foreach(var condition in individualConditions)
                 {
-                    compoundExpression = Expression.Or(compoundExpression, propertyQuery[i]);
+                    if(filterExpr == null)
+                    {
+                        filterExpr = condition;
+                    }
+                    else
+                    {
+                        filterExpr = Expression.AndAlso(filterExpr,condition);
+                    }   
                 }
 
-                // return the expression into a lambda 
-                return Expression.Lambda<Func<T, bool>>(compoundExpression, paramExpression);
+                // return the expression as a lambda 
+                return Expression.Lambda<Func<T, bool>>(filterExpr, paramExpression);
             
         }
-
-
 
         public class ModifyParam : ExpressionVisitor
         {
@@ -342,7 +374,7 @@ namespace DataTablesParser
             public bool Orderable { get; set; }
             public bool Searchable { get; set; }
             public string Regex { get; set; } //Not yet implemented
-            public string SearchInput { get; set; } //Not yet implemented
+            public string Filter { get; set; } 
         }
 
         
