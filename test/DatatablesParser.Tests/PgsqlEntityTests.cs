@@ -107,6 +107,26 @@ namespace DataTablesParser.Tests
 
         }
 
+                [Fact]
+        public void TotalDisplayIndividualMutiTest()
+        {
+            var context = TestHelper.GetInMemoryContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 1;
+
+           
+            //Set filter parameter
+            p[Constants.SEARCH_KEY] = new StringValues("a");
+            p[Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "0")] = "omie";
+            p[Constants.GetKey(Constants.SEARCH_VALUE_PROPERTY_FORMAT, "1")] = "mmer";
+            
+            var parser = new Parser<Person>(p, context.People);
+
+            Console.WriteLine("Pgsql - Total People TotalDisplayIndividualMutiTest: {0}",context.People.Count());
+
+            Assert.Equal(displayLength, parser.Parse().recordsFiltered);
+
+        }
 
     }
 }

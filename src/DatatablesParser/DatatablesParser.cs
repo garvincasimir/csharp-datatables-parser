@@ -246,20 +246,28 @@ namespace DataTablesParser
         {
 
                 var globalFilter = _config[Constants.SEARCH_KEY]; 
-               
+                var globalMatch = false;
+                var individualMatch = true;
                 foreach (var map in _propertyMap.Where(m => m.Value.Searchable))
                 {
                     var propValue = Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower();
                     if (!string.IsNullOrWhiteSpace(globalFilter) && propValue.Contains(globalFilter.ToLower()))
                     {
-                        return true;
+                        globalMatch = true;
                     }
-                    if (!string.IsNullOrWhiteSpace(map.Value.Filter) && propValue.Contains(map.Value.Filter.ToLower()))
+                    if (!string.IsNullOrWhiteSpace(map.Value.Filter) && !propValue.Contains(map.Value.Filter.ToLower()))
                     {
-                        return true;
+                        individualMatch = false;
                     }
                 }
-                return false;
+                
+                if(!string.IsNullOrWhiteSpace(globalFilter))
+                {
+                    return globalMatch && individualMatch;
+                }
+
+                return individualMatch;
+
         }
 
         /// <summary>
