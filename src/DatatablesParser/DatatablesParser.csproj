@@ -4,7 +4,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <AssemblyName>DatatablesParser</AssemblyName>
     <PackageId>DatatablesParser-core</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>C# Datatables Datatables.net javascript parser json Linq entity framework asp.net mvc grid table database query builder core</PackageTags>
     <PackageProjectUrl>https://github.com/garvincasimir/csharp-datatables-parser</PackageProjectUrl>
