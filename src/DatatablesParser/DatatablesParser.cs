@@ -244,19 +244,22 @@ namespace DataTablesParser
 
         private bool EnumerablFilter(T item)
         {
-                bool found = false;
 
-                var filter = _config[Constants.SEARCH_KEY]; 
+                var globalFilter = _config[Constants.SEARCH_KEY]; 
                
-                foreach (var map in _propertyMap)
+                foreach (var map in _propertyMap.Where(m => m.Value.Searchable))
                 {
-
-                    if (map.Value.Searchable && Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower().Contains((filter).ToLower()))
+                    var propValue = Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower();
+                    if (!string.IsNullOrWhiteSpace(globalFilter) && propValue.Contains(globalFilter.ToLower()))
                     {
-                        found = true;
+                        return true;
+                    }
+                    if (!string.IsNullOrWhiteSpace(map.Value.Filter) && propValue.Contains(map.Value.Filter.ToLower()))
+                    {
+                        return true;
                     }
                 }
-                return found;
+                return false;
         }
 
         /// <summary>
@@ -279,13 +282,13 @@ namespace DataTablesParser
                 List<MethodCallExpression> individualConditions = new List<MethodCallExpression>();
                 var modifier = new ModifyParam(paramExpression); //map user supplied converters using a visitor
 
-                foreach (var propMap in _propertyMap)
+                foreach (var propMap in _propertyMap.Where(m => m.Value.Searchable))
                 {
                     var prop = propMap.Value.Property;
                     var isString = prop.PropertyType == typeof(string);
-                    var hasCustom = _converters.ContainsKey(prop.Name);
+                    var hasCustomExpr = _converters.ContainsKey(prop.Name);
 
-                    if ((!prop.CanWrite || !propMap.Value.Searchable || (!_convertable.Any(t => t == prop.PropertyType) && !isString )) && !hasCustom ) 
+                    if ((!prop.CanWrite || (!_convertable.Any(t => t == prop.PropertyType) && !isString )) && !hasCustomExpr ) 
                     {
                         continue; 
                     }
@@ -298,7 +301,7 @@ namespace DataTablesParser
                     
                     Expression propExp = Expression.Property(paramExpression, prop);
                    
-                    if(hasCustom)
+                    if(hasCustomExpr)
                     {
                         propExp = modifier.Visit( _converters[prop.Name]);
                     }
