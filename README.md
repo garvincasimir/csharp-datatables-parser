@@ -118,6 +118,78 @@ The included Dockerfile-websample builds, packages and runs the web sample proje
 
     docker run -p 80:80 garvincasimir/datatables-aspnet-core-sample:0.0.2   
 
+Projections
+========================
+I recommended always using a projection with the query that is sent to the parser. This strategy has 4 main benefits:
+* Avoid inadverently serializing and sending sensitive fields to the client.
+* Avoid custom non-database fields in your model
+* Inlcude parent table fields
+* Include computed fields
+
+Below is an example of a self referencing table:
+
+| EmployeeID  | FirstName | LastName | ManagerID | Token       | BirthDate |
+| ----------- | --------- | -------- | --------  | ----------- | --------- |
+| 1           | Mary      | Joe      | null      | s38fjsf8dj  | 3/3/1921  |
+| 2           | Jane      | Jim      | 1         | 9fukfdflsl  | 2/2/1921  |
+| 3           | Rose      | Jack     | 1         | s9fkf;;d;   | 1/1/1931  |
+
+
+The model class:
+
+```csharp
+public class Employee
+{
+    public int EmployeeID {get;set;}
+    public string FirstName {get;set;}
+    public string LastName {get;set;}
+    public int? ManagerID {get;set;}
+    [ForeignKey("ManagerID")]
+    public Employee Manager {get;set;}
+    public string Token {get;set;}
+    public DateTime BirthDate {get;set;}
+}
+```
+
+Projection class:
+
+```csharp
+public class EmployeeResult
+{
+    public int EmployeeID {get;set;}
+    public string FullName {get;set;}
+    public int? ManagerID {get;set;}
+    public string ManagerFullName {get;set;}
+    public DateTime BirthDate {get;set;}
+    public string BirthDateFormatted
+    {
+      get 
+      {
+          return String.Format("{0:M/d/yyyy}", BirthDate); 
+      }
+    }
+}
+```
+Query:
+
+```csharp
+var query = from e in context.Employees
+            let FullName = e.FirstName + " " + e.LastName
+            let ManagerFullName = e.Manager.FirstName + " " + e.Manager.LastName
+            select new EmployeeResult
+            {
+                EmployeeID = e.EmployeeID,
+                FullName = FullName,
+                ManagerID = e.ManagerID,
+                ManagerFullName = ManagerFullName,
+                BirthDate = e.BirthDate
+            };
+            
+ var parser = new Parser<EmployeeResult>(Request.Form, query);
+ 
+```
+
+
 Custom Filter Expressions
 ========================
 The parser builds a set of expressions based on the settings and filter text sent from Datatables. The end result is a *WHERE* clause which looks something like this:
