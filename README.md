@@ -128,7 +128,7 @@ I recommended always using a projection with the query that is sent to the parse
 
 Below is an example of a self referencing table:
 
-| EmployeeID  | FirstName | LastName | ManagerID | Token       | Birthdate |
+| EmployeeID  | FirstName | LastName | ManagerID | Token       | BirthDate |
 | ----------- | --------- | -------- | --------  | ----------- | --------- |
 | 1           | Mary      | Joe      | null      | s38fjsf8dj  | 3/3/1921  |
 | 2           | Jane      | Jim      | 1         | 9fukfdflsl  | 2/2/1921  |
@@ -144,7 +144,8 @@ public class Employee
     public string FirstName {get;set;}
     public string LastName {get;set;}
     public int? ManagerID {get;set;}
-    public Manager Manager {get;set;}
+    [ForeignKey("ManagerID")]
+    public Employee Manager {get;set;}
     public string Token {get;set;}
     public DateTime BirthDate {get;set;}
 }
