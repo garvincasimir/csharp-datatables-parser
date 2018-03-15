@@ -154,8 +154,6 @@ namespace DataTablesParser
         /// <param name="tostring">A lambda given T returns a string by performing a sql translatable operation on property</param>
         public Parser<T> SetConverter(Expression<Func<T,object>> property, Expression<Func<T,string>> tostring)
         {
-            Console.WriteLine(property.Body.NodeType);
-
             var  memberExp =  ((UnaryExpression)property.Body).Operand as MemberExpression;
 
             if(memberExp == null)
