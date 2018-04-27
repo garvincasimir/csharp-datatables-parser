@@ -291,7 +291,15 @@ END) | CASE
     THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT)
 END) = 1
 ```
+**EF6**
 
+In EF6 you can make use of the [Sql Functions Class](https://msdn.microsoft.com/en-us/library/system.data.objects.sqlclient.sqlfunctions(v=vs.110).aspx) to format dates and numbers.
+
+```csharp
+//Property BirthDate is a DateTime
+var parser = new Parser<Person>(p, context.People)
+                  .SetConverter(x => x.BirthDate, x => SqlFunctions.DateName("m",x.BirthDate));  
+```
 For examples using MySQL and PostgreSQL please see the test project
 
 
