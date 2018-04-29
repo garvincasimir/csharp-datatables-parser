@@ -107,10 +107,10 @@ namespace DataTablesParser.Tests
 
         }
 
-                [Fact]
+        [Fact]
         public void TotalDisplayIndividualMutiTest()
         {
-            var context = TestHelper.GetInMemoryContext();
+            var context = TestHelper.GetMysqlContext();
             var p = TestHelper.CreateParams();
             var displayLength = 1;
 

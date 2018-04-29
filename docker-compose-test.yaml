@@ -10,7 +10,7 @@ services:
       - mssql
       - pgsql
   mysql:
-    image: mysql:5.7
+    image: mysql
     container_name: dotnet-test-mysql
     environment:
       MYSQL_ROOT_PASSWORD: "Rea11ytrong_3"
