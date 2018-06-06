@@ -323,7 +323,7 @@ namespace DataTablesParser
 
                     if(globalFilterConst!=null)
                     {
-                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod("Contains"), globalFilterConst);
+                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod("Contains", new[] { typeof(string) }), globalFilterConst);
 
                         if(filterExpr == null)
                         {
@@ -337,7 +337,7 @@ namespace DataTablesParser
 
                     if(individualFilterConst!=null)
                     {
-                        individualConditions.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains"), individualFilterConst));
+                        individualConditions.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains", new[] { typeof(string) }), individualFilterConst));
 
                     }
 
