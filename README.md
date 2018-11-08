@@ -252,7 +252,7 @@ PersonContext.cs
 
             //Sql Server >= 2012
             //https://docs.microsoft.com/en-us/sql/t-sql/functions/format-transact-sql
-            [DbFunction]
+            [DbFunction(Schema="")]
             public static string Format(DateTime data,string format)
             {
                 throw new Exception();
