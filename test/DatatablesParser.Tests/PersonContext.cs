@@ -11,7 +11,7 @@
             : base(options){ }
 
             //Sql Server >= 2012
-            [DbFunction]
+            [DbFunction(Schema="")]
             public static string Format(DateTime data,string format)
             {
                 throw new Exception();
