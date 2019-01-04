@@ -19,6 +19,8 @@ namespace DataTablesParser
         private int _take;
         private int _skip;
         private bool _sortDisabled = false;
+        private string _startsWithtoken = "*|";
+        private string _endsWithToken = "|*";
 
         private Dictionary<string,Expression> _converters = new Dictionary<string, Expression>();
     
@@ -166,6 +168,35 @@ namespace DataTablesParser
             return this;
         }
 
+        ///<summary>
+        /// SetStartsWithToken overrides the default StartsWith filter token
+        /// The default token is *|
+        /// By default all filters are in the form of string.Contains(FILTER_STRING)
+        /// If a filter string is in the form of token + FILTER_STRING eg. *|app, 
+        /// the search will be translated to string.StartsWith("app")
+        ///</summary>
+        /// <param name="token">A string used to replace the default token</param>
+        public Parser<T> SetStartsWithToken(string token)
+        {
+            this._startsWithtoken = token;
+            return this;
+        }
+
+        ///<summary>
+        /// SetEndsWithToken overrides the default EndsWith filter token
+        /// The default token is |*
+        /// By default all filters are in the form of string.Contains(FILTER_STRING)
+        /// If a filter string is in the form of FILTER_STRING + token eg. app|*, 
+        /// the search will be translated to string.EndsWith("app")
+        ///</summary>
+        /// <param name="token">A string used to replace the default token</param>
+        public Parser<T> SetEndsWithToken(string token)
+        {
+            this._endsWithToken = token;
+            return this;
+        }
+
+
         private void ApplySort()
         {
             var sorted = false;
@@ -268,6 +299,23 @@ namespace DataTablesParser
 
         }
 
+        private string GetFilterFn(string filter)
+        {
+            switch(filter)
+            {
+                case null:
+                    return Constants.CONTAINS_FN;
+                case var f when f.StartsWith(_startsWithtoken) && f.EndsWith(_endsWithToken):
+                    return Constants.CONTAINS_FN;
+                case var f when f.StartsWith(_startsWithtoken): 
+                    return Constants.STARTS_WITH_FN;
+                case var f when f.EndsWith(_endsWithToken): 
+                    return Constants.ENDS_WITH_FN;
+                default:
+                    return Constants.CONTAINS_FN;                         
+            }
+        }
+
         /// <summary>
         /// Generate a lamda expression based on a search filter for all mapped columns
         /// </summary>
@@ -277,11 +325,12 @@ namespace DataTablesParser
                 var paramExpression = Expression.Parameter(_type, "val");
 
                 string filter = _config[Constants.SEARCH_KEY];
-
+                string globalFilterFn = null;
                 ConstantExpression globalFilterConst = null;
                 Expression filterExpr = null;
                 if(!string.IsNullOrWhiteSpace(filter))
                 {
+                    globalFilterFn = GetFilterFn(filter);
                     globalFilterConst = Expression.Constant(filter.ToLower());
                 }
 
@@ -293,6 +342,7 @@ namespace DataTablesParser
                     var prop = propMap.Value.Property;
                     var isString = prop.PropertyType == typeof(string);
                     var hasCustomExpr = _converters.ContainsKey(prop.Name);
+                    string propFilterFn = null;
 
                     if ((!prop.CanWrite || (!_convertable.Any(t => t == prop.PropertyType) && !isString )) && !hasCustomExpr ) 
                     {
@@ -302,6 +352,7 @@ namespace DataTablesParser
                     ConstantExpression individualFilterConst = null;
                     if(!string.IsNullOrWhiteSpace(propMap.Value.Filter))
                     {
+                        propFilterFn = GetFilterFn(propMap.Value.Filter);    
                         individualFilterConst = Expression.Constant(propMap.Value.Filter.ToLower());
                     } 
                     
@@ -323,7 +374,7 @@ namespace DataTablesParser
 
                     if(globalFilterConst!=null)
                     {
-                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod("Contains", new[] { typeof(string) }), globalFilterConst);
+                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
 
                         if(filterExpr == null)
                         {
@@ -337,7 +388,7 @@ namespace DataTablesParser
 
                     if(individualFilterConst!=null)
                     {
-                        individualConditions.Add(Expression.Call(toLower, typeof(string).GetMethod("Contains", new[] { typeof(string) }), individualFilterConst));
+                        individualConditions.Add(Expression.Call(toLower, typeof(string).GetMethod(propFilterFn, new[] { typeof(string) }), individualFilterConst));
 
                     }
 
@@ -418,6 +469,10 @@ namespace DataTablesParser
         public const string ORDER_COLUMN_FORMAT = "order[{0}][column]";
         public const string ORDER_DIRECTION_FORMAT = "order[{0}][dir]";
         public const string ORDERING_ENABLED = "ordering";
+
+        public const string CONTAINS_FN = "Contains";
+        public const string STARTS_WITH_FN = "StartsWith";
+        public const string ENDS_WITH_FN = "EndsWith";
 
         public static string GetKey(string format,string index)
         {
