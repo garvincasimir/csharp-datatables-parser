@@ -10,7 +10,7 @@ namespace DataTablesParser
 {
     public class Parser<T> where T : class
     {
-        private IQueryable<T> _queryable;
+        private IQueryable<T> _query;
         private readonly Dictionary<string,string> _config;
         private readonly Type _type;
         private IDictionary<int, PropertyMap> _propertyMap ;
@@ -21,6 +21,7 @@ namespace DataTablesParser
         private bool _sortDisabled = false;
         private string _startsWithtoken = "*|";
         private string _endsWithToken = "|*";
+        private bool _isEnumerableQuery; 
 
         private Dictionary<string,Expression> _converters = new Dictionary<string, Expression>();
     
@@ -35,12 +36,13 @@ namespace DataTablesParser
             typeof(double),
             typeof(Nullable<double>),
             typeof(DateTime), 
-            typeof(Nullable<DateTime>) 
+            typeof(Nullable<DateTime>),
+            typeof(string) 
         };
 
-        public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> queryable)
+        public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> query)
         {
-            _queryable = queryable;
+            _query = query;
             _config = configParams.ToDictionary(k => k.Key,v=> v.Value.First().Trim());
             _type = typeof(T);
             
@@ -91,6 +93,7 @@ namespace DataTablesParser
             }
 
             _sortDisabled = _config.ContainsKey(Constants.ORDERING_ENABLED) && _config[Constants.ORDERING_ENABLED] == "false";
+            _isEnumerableQuery = _query is System.Linq.EnumerableQuery;
         }
 
         public Results<T> Parse()
@@ -101,7 +104,7 @@ namespace DataTablesParser
             list.draw = int.Parse(_config[Constants.DRAW]);
 
             // count the record BEFORE filtering
-            list.recordsTotal =  _queryable.Count();
+            list.recordsTotal =  _query.Count();
 
             //sort results if sorting isn't disabled or skip needs to be called
             if(!_sortDisabled || _skip > 0)
@@ -115,26 +118,18 @@ namespace DataTablesParser
             //Use query expression to return filtered paged list
             //This is a best effort to avoid client evaluation whenever possible
             //No good api to determine support for .ToString() on a type
-            if(_queryable.Provider is System.Linq.EnumerableQuery && hasFilterText)
-            {     
-                 resultQuery = _queryable.Where(EnumerablFilter)
-                            .Skip(_skip)
-                            .Take(_take);
-
-                list.recordsFiltered =  _queryable.Count(EnumerablFilter);
-            }
-            else if(hasFilterText)
+            if(hasFilterText)
             {
                 var entityFilter = GenerateEntityFilter();
-                resultQuery = _queryable.Where(entityFilter)
+                resultQuery = _query.Where(entityFilter)
                             .Skip(_skip)
                             .Take(_take);
                             
-                list.recordsFiltered =  _queryable.Count(entityFilter);           
+                list.recordsFiltered =  _query.Count(entityFilter);           
             }
             else
             {
-                resultQuery = _queryable
+                resultQuery = _query
                             .Skip(_skip)
                             .Take(_take);
                             
@@ -238,13 +233,13 @@ namespace DataTablesParser
                      methodName = sorted ? "ThenByDescending" : "OrderByDescending";
                  }
 
-                _queryable = typeof(Queryable).GetMethods().Single(
+                _query = typeof(Queryable).GetMethods().Single(
                     method => method.Name == methodName
                                 && method.IsGenericMethodDefinition
                                 && method.GetGenericArguments().Length == 2
                                 && method.GetParameters().Length == 2)
                         .MakeGenericMethod(_type, propType)
-                        .Invoke(null, new object[] { _queryable, propertyExpr }) as IOrderedQueryable<T>;
+                        .Invoke(null, new object[] { _query, propertyExpr }) as IOrderedQueryable<T>;
 
                      sorted = true;
             }
@@ -258,44 +253,15 @@ namespace DataTablesParser
                 var delegateType = Expression.GetFuncType(_type, propType);
                 var propertyExpr = Expression.Lambda(delegateType, firstProp, paramExpr);
          
-                _queryable = typeof(Queryable).GetMethods().Single(
+                _query = typeof(Queryable).GetMethods().Single(
              method => method.Name == "OrderBy"
                          && method.IsGenericMethodDefinition
                          && method.GetGenericArguments().Length == 2
                          && method.GetParameters().Length == 2)
                  .MakeGenericMethod(_type, propType)
-                 .Invoke(null, new object[] { _queryable, propertyExpr }) as IOrderedQueryable<T>;
+                 .Invoke(null, new object[] { _query, propertyExpr }) as IOrderedQueryable<T>;
 
             }
-
-        }
-
-
-        private bool EnumerablFilter(T item)
-        {
-
-                var globalFilter = _config[Constants.SEARCH_KEY]; 
-                var globalMatch = false;
-                var individualMatch = true;
-                foreach (var map in _propertyMap.Where(m => m.Value.Searchable))
-                {
-                    var propValue = Convert.ToString(map.Value.Property.GetValue(item, null)).ToLower();
-                    if (!string.IsNullOrWhiteSpace(globalFilter) && propValue.Contains(globalFilter.ToLower()))
-                    {
-                        globalMatch = true;
-                    }
-                    if (!string.IsNullOrWhiteSpace(map.Value.Filter) && !propValue.Contains(map.Value.Filter.ToLower()))
-                    {
-                        individualMatch = false;
-                    }
-                }
-                
-                if(!string.IsNullOrWhiteSpace(globalFilter))
-                {
-                    return globalMatch && individualMatch;
-                }
-
-                return individualMatch;
 
         }
 
@@ -344,7 +310,7 @@ namespace DataTablesParser
                     var hasCustomExpr = _converters.ContainsKey(prop.Name);
                     string propFilterFn = null;
 
-                    if ((!prop.CanWrite || (!_convertable.Any(t => t == prop.PropertyType) && !isString )) && !hasCustomExpr ) 
+                    if ( !prop.CanWrite || (!_convertable.Any(t => t == prop.PropertyType)  && !hasCustomExpr && !_isEnumerableQuery )) 
                     {
                         continue; 
                     }
