@@ -105,5 +105,42 @@ namespace DataTablesParser.Tests
 
         }
 
+        [Fact]
+        public void StartsWithTest()
+        {
+            var context = TestHelper.GetInMemoryContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 1;
+
+            //Set filter parameter
+            p[Constants.SEARCH_KEY] = new StringValues(Constants.DEFAULT_STARTS_WITH_TOKEN + "Cr");
+
+            var parser = new Parser<Person>(p, context.People.ToList().AsQueryable());
+
+            Console.WriteLine("InMemory - StartsWithTest: {0}",context.People.Count());
+
+            Assert.Equal(displayLength, parser.Parse().recordsFiltered);
+
+        }
+
+        [Fact]
+        public void EndsWithTest()
+        {
+            var context = TestHelper.GetInMemoryContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 4;
+
+            //Set filter parameter
+            p[Constants.SEARCH_KEY] = new StringValues("ie" + Constants.DEFAULT_ENDS_WITH_TOKEN );
+
+            var parser = new Parser<Person>(p, context.People.ToList().AsQueryable());
+
+            Console.WriteLine("InMemory - EndsWithTest: {0}",context.People.Count());
+
+            Assert.Equal(displayLength, parser.Parse().recordsFiltered);
+
+        }
+
+
     }
 }

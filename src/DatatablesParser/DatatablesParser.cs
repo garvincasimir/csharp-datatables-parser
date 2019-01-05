@@ -19,8 +19,8 @@ namespace DataTablesParser
         private int _take;
         private int _skip;
         private bool _sortDisabled = false;
-        private string _startsWithtoken = "*|";
-        private string _endsWithToken = "|*";
+        private string _startsWithtoken = Constants.DEFAULT_STARTS_WITH_TOKEN;
+        private string _endsWithToken = Constants.DEFAULT_ENDS_WITH_TOKEN;
         private bool _isEnumerableQuery; 
 
         private Dictionary<string,Expression> _converters = new Dictionary<string, Expression>();
@@ -282,6 +282,23 @@ namespace DataTablesParser
             }
         }
 
+        private string RemoveFilterTokens(string filter)
+        {
+            string untoken = filter;
+
+            if(untoken.StartsWith(_startsWithtoken))
+            {
+                untoken = untoken.Remove(0,_startsWithtoken.Length);
+            }
+            
+            if(untoken.EndsWith(_endsWithToken))
+            {
+                untoken = untoken.Remove(filter.LastIndexOf(_endsWithToken),_endsWithToken.Length);
+            }
+
+            return untoken;
+        }
+
         /// <summary>
         /// Generate a lamda expression based on a search filter for all mapped columns
         /// </summary>
@@ -297,6 +314,7 @@ namespace DataTablesParser
                 if(!string.IsNullOrWhiteSpace(filter))
                 {
                     globalFilterFn = GetFilterFn(filter);
+                    filter = RemoveFilterTokens(filter);
                     globalFilterConst = Expression.Constant(filter.ToLower());
                 }
 
@@ -318,7 +336,8 @@ namespace DataTablesParser
                     ConstantExpression individualFilterConst = null;
                     if(!string.IsNullOrWhiteSpace(propMap.Value.Filter))
                     {
-                        propFilterFn = GetFilterFn(propMap.Value.Filter);    
+                        propFilterFn = GetFilterFn(propMap.Value.Filter); 
+                        propMap.Value.Filter = RemoveFilterTokens(propMap.Value.Filter);   
                         individualFilterConst = Expression.Constant(propMap.Value.Filter.ToLower());
                     } 
                     
@@ -439,6 +458,9 @@ namespace DataTablesParser
         public const string CONTAINS_FN = "Contains";
         public const string STARTS_WITH_FN = "StartsWith";
         public const string ENDS_WITH_FN = "EndsWith";
+
+        public const string DEFAULT_STARTS_WITH_TOKEN = "*|";
+        public const string DEFAULT_ENDS_WITH_TOKEN = "|*";
 
         public static string GetKey(string format,string index)
         {
