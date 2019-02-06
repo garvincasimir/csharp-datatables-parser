@@ -302,6 +302,21 @@ var parser = new Parser<Person>(p, context.People)
 ```
 For examples using MySQL and PostgreSQL please see the test project
 
+**Partial String Searches**
+
+By default, the library does filtering by calling String.Contains() on a field with the search term as the argument. For those who want to match only the start or end of the field, there is a concept of start and end tokens. When these tokens are found at the start or end of a search term the library calls `String.StartsWith()` or `String.EndsWith()` respectively. If both tokens are present the default `String.Contains()` will be called. The default tokens are *\*|* for matching the beginning of the field and *|\** for matching the end of a field.
+
+For example, you might want to filter by all users with a name that begins with the letter *a*. In that cases, you would allow the user to search as usual and prepend the token to the search term either in the [pre-xhr hook](https://datatables.net/reference/event/preXhr) or on the server side before the Datatable config vars are passed to the library.
+
+The start and end tokens can be replaced with custom strings by using the following methods:
+
+```csharp
+var parser = new Parser<Person>(p, context.People)
+                 .SetStartsWithToken("--")
+                 .SetEndsWithToken("++");
+```
+
+*This feature is still experimental. As of now it is not available in the Nuget package.*
 
 Installation
 ========================
