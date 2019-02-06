@@ -340,4 +340,3 @@ I welcome any suggestions for improvement, contributions, questions or issues wi
 Contact 
 ========================
 Twitter: [garvincasimir](https://twitter.com/garvincasimir)
-Google+: [garvincasimir](https://plus.google.com/100137710586918559017)
