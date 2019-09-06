@@ -1,0 +1,10 @@
+name: CI
+
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build and Test
+      run: docker-compose -f docker-compose-test.yaml up --force-recreate --exit-code-from test-runner --build test-runner
