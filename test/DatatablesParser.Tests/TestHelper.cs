@@ -144,7 +144,10 @@ namespace DataTablesParser.Tests
 
             Params.Add(key,new StringValues(value));
         }
-
+        public static readonly ILoggerFactory consoleLogger  
+            = new LoggerFactory(new[] {
+                    new EFlogger()
+                  });
         public static PersonContext GetInMemoryContext()
         {
 
@@ -154,7 +157,8 @@ namespace DataTablesParser.Tests
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseInMemoryDatabase("testdb")
-                   .UseInternalServiceProvider(serviceProvider);
+                   .UseInternalServiceProvider(serviceProvider)
+                   .UseLoggerFactory(consoleLogger);
 
             var context = new PersonContext(builder.Options);
             
@@ -171,12 +175,10 @@ namespace DataTablesParser.Tests
                 .AddEntityFrameworkMySql()
                 .BuildServiceProvider();
                 
-            var lf = serviceProvider.GetService<ILoggerFactory>();
-            lf.AddProvider(new EFlogger());
-            
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
-                 .UseInternalServiceProvider(serviceProvider);
+                 .UseInternalServiceProvider(serviceProvider)
+                 .UseLoggerFactory(consoleLogger);
                   
             var context = new PersonContext(builder.Options);
 
@@ -196,13 +198,11 @@ namespace DataTablesParser.Tests
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
-            
-            var lf = serviceProvider.GetService<ILoggerFactory>();
-            lf.AddProvider(new EFlogger());
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
-                    .UseInternalServiceProvider(serviceProvider);
+                    .UseInternalServiceProvider(serviceProvider)
+                    .UseLoggerFactory(consoleLogger);
                     
             var context = new PersonContext(builder.Options);
             
@@ -224,12 +224,11 @@ namespace DataTablesParser.Tests
                 .AddEntityFrameworkSqlServer()
                 .BuildServiceProvider();
 
-            var lf = serviceProvider.GetService<ILoggerFactory>();
-            lf.AddProvider(new EFlogger());
-
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
-                    .UseInternalServiceProvider(serviceProvider);
+                    .UseInternalServiceProvider(serviceProvider)
+                    .UseLoggerFactory(consoleLogger);
+                    
 
             var context = new PersonContext(builder.Options);
             context.Database.EnsureCreated();
