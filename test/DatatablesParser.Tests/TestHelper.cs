@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using DataTablesParser;
 using Microsoft.Extensions.Primitives;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+
 
 namespace DataTablesParser.Tests
 {
@@ -179,13 +176,12 @@ namespace DataTablesParser.Tests
             
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
-                 .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
                  .UseInternalServiceProvider(serviceProvider);
                   
             var context = new PersonContext(builder.Options);
 
             context.Database.EnsureCreated();
-            context.Database.ExecuteSqlCommand("truncate table People;");
+            context.Database.ExecuteSqlRaw("truncate table People;");
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
@@ -206,13 +202,12 @@ namespace DataTablesParser.Tests
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
-                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
                     .UseInternalServiceProvider(serviceProvider);
                     
             var context = new PersonContext(builder.Options);
             
             context.Database.EnsureCreated();
-            context.Database.ExecuteSqlCommand("truncate table public.\"People\";");
+            context.Database.ExecuteSqlRaw("truncate table public.\"People\";");
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
@@ -234,12 +229,11 @@ namespace DataTablesParser.Tests
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
-                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
                     .UseInternalServiceProvider(serviceProvider);
 
             var context = new PersonContext(builder.Options);
             context.Database.EnsureCreated();
-            context.Database.ExecuteSqlCommand("truncate table People;");
+            context.Database.ExecuteSqlRaw("truncate table People;");
             
             context.People.AddRange(CreateData());
             context.SaveChanges();
