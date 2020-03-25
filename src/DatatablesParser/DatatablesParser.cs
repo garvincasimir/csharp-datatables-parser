@@ -361,14 +361,6 @@ namespace DataTablesParser
                     {
                         Expression globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
 
-                        // Check if it is nullable
-                        var defValue = prop.PropertyType.GetTypeInfo().IsValueType ? Activator.CreateInstance(prop.PropertyType) : null;
-                        if (defValue == null)
-                        {
-                            var isNotNull = Expression.NotEqual(Expression.Property(paramExpression, prop), Expression.Constant(null));
-                            globalTest = Expression.AndAlso(isNotNull, globalTest);
-                        }
-
                         if(filterExpr == null)
                         {
                             filterExpr = globalTest;
