@@ -1,0 +1,14 @@
+﻿<Properties StartupConfiguration="{9C1BC2C4-6595-494C-9261-E7D4B2B97032}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="test/DatatablesParser.Tests/LinqToObjectTests.cs">
+    <Files>
+      <File FileName="test/DatatablesParser.Tests/LinqToObjectTests.cs" Line="13" Column="12" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.test.DatatablesParser.Tests PreferredExecutionTarget="MonoDevelop.Default" />
+  <MultiItemStartupConfigurations />
+</Properties>

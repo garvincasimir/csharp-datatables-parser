@@ -291,6 +291,10 @@ END) | CASE
     THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT)
 END) = 1
 ```
+
+**EF Core 3+**
+It isn't as simply to call built-in functions in EF Core 3+. Use the same strategy from EF Core 2 but with a User Defined Function. Essentially, create a UDF and call the system function from there.
+
 **EF6**
 
 In EF6 you can make use of the [Sql Functions Class](https://msdn.microsoft.com/en-us/library/system.data.objects.sqlclient.sqlfunctions(v=vs.110).aspx) to format dates and numbers.

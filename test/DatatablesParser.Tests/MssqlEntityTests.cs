@@ -7,6 +7,7 @@ using Microsoft.Extensions.Primitives;
 namespace DataTablesParser.Tests
 {
   
+
     public class MssqlEntityTests
     {
 
@@ -85,27 +86,6 @@ namespace DataTablesParser.Tests
         }
 
         [Fact]
-        public void TotalDisplayCustomFormatTest()
-        {
-            var context = TestHelper.GetMssqlContext();
-            var p = TestHelper.CreateParams();
-            var displayLength = 1;
-
-           
-            //Set filter parameter
-            p[Constants.SEARCH_KEY] = new StringValues("9/03/1953");
-
-            var parser = new Parser<Person>(p, context.People)
-                            .SetConverter(x => x.BirthDate, x => PersonContext.Format(x.BirthDate,"M/dd/yyyy"));
-                
-
-            Console.WriteLine("Mssql - Total People TotalDisplayCustomFormatTest: {0}",context.People.Count());
-
-            Assert.Equal(displayLength, parser.Parse().recordsFiltered);
-
-        }
-
-                [Fact]
         public void TotalDisplayIndividualMutiTest()
         {
             var context = TestHelper.GetInMemoryContext();
@@ -126,6 +106,26 @@ namespace DataTablesParser.Tests
 
         }
 
+       [Fact]
+        public void ResultsWhenSearchInNullColumnTest()
+        {
+            var context = TestHelper.GetMssqlContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 1;
+
+
+            //Set filter parameter
+            p[Constants.SEARCH_KEY] = new StringValues("Xorie");
+
+            var parser = new Parser<Person>(p, context.People);
+
+            var result = parser.Parse().recordsFiltered;
+
+            Console.WriteLine("MSSQL - Search one row whe some columns are null: {0}", result);
+
+            Assert.Equal(displayLength, result);
+
+        }
 
 
     }

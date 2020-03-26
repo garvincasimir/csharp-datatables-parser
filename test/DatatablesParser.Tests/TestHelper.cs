@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-
 namespace DataTablesParser.Tests
 {
     public class TestHelper
@@ -153,12 +152,15 @@ namespace DataTablesParser.Tests
 
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
+                .AddSingleton(consoleLogger)
+                .AddLogging()
                 .BuildServiceProvider();
+                
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseInMemoryDatabase("testdb")
-                   .UseInternalServiceProvider(serviceProvider)
-                   .UseLoggerFactory(consoleLogger);
+                   .UseInternalServiceProvider(serviceProvider);
+                 
 
             var context = new PersonContext(builder.Options);
             
@@ -173,12 +175,14 @@ namespace DataTablesParser.Tests
            
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkMySql()
+                .AddSingleton(consoleLogger)
+                .AddLogging()
                 .BuildServiceProvider();
                 
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseMySql(@"server=mysql;database=dotnettest;user=tester;password=Rea11ytrong_3")
-                 .UseInternalServiceProvider(serviceProvider)
-                 .UseLoggerFactory(consoleLogger);
+                 .UseInternalServiceProvider(serviceProvider);
+               
                   
             var context = new PersonContext(builder.Options);
 
@@ -197,12 +201,14 @@ namespace DataTablesParser.Tests
 
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
+                .AddSingleton(consoleLogger)
+                .AddLogging()
                 .BuildServiceProvider();
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
                 builder.UseNpgsql(@"Host=pgsql;Database=dotnettest;User ID=tester;Password=Rea11ytrong_3")
-                    .UseInternalServiceProvider(serviceProvider)
-                    .UseLoggerFactory(consoleLogger);
+                    .UseInternalServiceProvider(serviceProvider);
+                   
                     
             var context = new PersonContext(builder.Options);
             
@@ -222,12 +228,14 @@ namespace DataTablesParser.Tests
 
            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkSqlServer()
+                .AddSingleton(consoleLogger)
+                .AddLogging()
                 .BuildServiceProvider();
 
             var builder = new DbContextOptionsBuilder<PersonContext>();
             builder.UseSqlServer(@"Data Source=mssql;Initial Catalog=TestNetCoreEF;user id=sa;password=Rea11ytrong_3")
-                    .UseInternalServiceProvider(serviceProvider)
-                    .UseLoggerFactory(consoleLogger);
+                    .UseInternalServiceProvider(serviceProvider);
+                    
                     
 
             var context = new PersonContext(builder.Options);

@@ -359,7 +359,7 @@ namespace DataTablesParser
 
                     if(globalFilterConst!=null)
                     {
-                        Expression globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
+                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
 
                         if(filterExpr == null)
                         {
