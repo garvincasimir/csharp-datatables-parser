@@ -10,6 +10,7 @@ namespace DataTablesParser
 {
     public class Parser<T> where T : class
     {
+        private IQueryable<T> _originalQuery;
         private IQueryable<T> _query;
         private readonly Dictionary<string,string> _config;
         private readonly Type _type;
@@ -42,6 +43,7 @@ namespace DataTablesParser
 
         public Parser(IEnumerable<KeyValuePair<string, StringValues>> configParams, IQueryable<T> query)
         {
+            _originalQuery = query;
             _query = query;
             _config = configParams.ToDictionary(k => k.Key,v=> v.Value.First().Trim());
             _type = typeof(T);
@@ -104,7 +106,7 @@ namespace DataTablesParser
             list.draw = int.Parse(_config[Constants.DRAW]);
 
             // count the record BEFORE filtering
-            list.recordsTotal =  _query.Count();
+            list.recordsTotal = _originalQuery.Count();
 
             //sort results if sorting isn't disabled or skip needs to be called
             if(!_sortDisabled || _skip > 0)
@@ -124,16 +126,19 @@ namespace DataTablesParser
                 resultQuery = _query.Where(entityFilter)
                             .Skip(_skip)
                             .Take(_take);
-                            
-                list.recordsFiltered =  _query.Count(entityFilter);           
+
+                list.recordsFiltered = _query.Count(entityFilter);
             }
             else
             {
                 resultQuery = _query
                             .Skip(_skip)
                             .Take(_take);
-                            
-                list.recordsFiltered =  list.recordsTotal;
+
+                if(_query == _originalQuery)
+                    list.recordsFiltered = list.recordsTotal;
+                else
+                    list.recordsFiltered = _query.Count();
 
             }
             
@@ -191,6 +196,17 @@ namespace DataTablesParser
             return this;
         }
 
+        /// <summary>
+        /// AddCustomFilter add external custom filter to handle complex filtering logic
+        /// For example date range filtering
+        /// </summary>
+        /// <param name="predicate">Filter logic</param>
+        /// <returns></returns>
+        public Parser<T> AddCustomFilter(Expression<Func<T, bool>> predicate)
+        {
+            _query = _query.Where(predicate);
+            return this;
+        }
 
         private void ApplySort()
         {
@@ -359,7 +375,7 @@ namespace DataTablesParser
 
                     if(globalFilterConst!=null)
                     {
-                        var globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
+                        Expression globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
 
                         if(filterExpr == null)
                         {

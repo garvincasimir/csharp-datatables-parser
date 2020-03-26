@@ -127,5 +127,28 @@ namespace DataTablesParser.Tests
 
         }
 
+        [Fact]
+        public void AddCustomFilterTest()
+        {
+            var context = TestHelper.GetMysqlContext();
+            var p = TestHelper.CreateParams();
+            var displayLength = 2; // James and Tony
+
+
+            var parser = new Parser<Person>(p, context.People); // p is empty, all rows
+
+            var minDate = DateTime.Parse("1960-01-01");
+            var maxDate = DateTime.Parse("1970-01-01");
+            parser.AddCustomFilter(x => x.BirthDate >= minDate);
+            parser.AddCustomFilter(x => x.BirthDate < maxDate);
+
+            var result = parser.Parse().recordsFiltered;
+
+            Console.WriteLine("MySql - Search only born between 1960 and 1970: {0}", result);
+
+            Assert.Equal(displayLength, result);
+
+        }
+
     }
 }
