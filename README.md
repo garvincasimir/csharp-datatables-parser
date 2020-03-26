@@ -293,7 +293,8 @@ END) = 1
 ```
 
 **EF Core 3+**
-It isn't as simply to call built-in functions in EF Core 3+. Use the same strategy from EF Core 2 but with a User Defined Function. Essentially, create a UDF and call the system function from there.
+
+It isn't simple to call built-in functions in EF Core 3+. Use the same strategy from EF Core 2 but with a User Defined Function. Essentially, create a UDF and call the system function from there.
 
 **EF6**
 
