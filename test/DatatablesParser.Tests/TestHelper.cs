@@ -62,7 +62,7 @@ namespace DataTablesParser.Tests
             new Person
             {
                 FirstName = "Xorie",
-                LastName = "Zera",
+                LastName = null, // "Zera", for search in null column test
                 BirthDate = DateTime.Parse("10/3/1974"),
                 Children = 2,
                 height = 5.9M,
